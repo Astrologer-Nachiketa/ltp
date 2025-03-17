@@ -794,10 +794,11 @@
                 button.addEventListener('click', (e) => {
                     const action = e.target.getAttribute('data-action');
                     const scriptKey = e.target.getAttribute('data-script');
+                    const quantity = (parseInt(e.target.closest('tr').querySelector('.qty-input').value) || 75).toString();
                     if (action === 'buy') {
-                        placeOrder('B', scriptKey);
+                        placeOrder('B', scriptKey, quantity);
                     } else if (action === 'sell') {
-                        sellScript(scriptKey);
+                        placeOrder('S', scriptKey, quantity);
                     }
                 });
             });
