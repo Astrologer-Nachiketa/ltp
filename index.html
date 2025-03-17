@@ -255,6 +255,72 @@
         .dark-theme table, .dark-theme th, .dark-theme td {
             border-color: white;
         }
+
+        /* Added styles for blinking effect */
+        .active-trigger {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { background-color: yellow; }
+            50% { background-color: transparent; }
+            100% { background-color: yellow; }
+        }
+
+        /* Real-time Status Styles */
+        .market-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .market-table { flex: 2; }
+        .status-panel {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 400px;
+        }
+        .status-content {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .status-entry {
+            padding: 5px;
+            margin: 5px 0;
+            border-left: 3px solid #007bff;
+            background: rgba(0,123,255,0.1);
+            transition: all 0.2s ease-in-out;
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+        .status-entry.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .status-entry.condition {
+            border-left-color: #28a745;
+            background: rgba(40,167,69,0.1);
+        }
+
+        .status-entry.order {
+            border-left-color: #dc3545;
+            background: rgba(220,53,69,0.1);
+        }
+
+        td, input {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .value-changed {
+            background-color: rgba(255, 255, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -301,25 +367,35 @@
     <!-- Search Results -->
     <div id="searchResults"></div>
 
-    <!-- Market Data Table -->
-    <h3>Subscribed Instruments</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Symbol</th>
-                <th>Exchange</th>
-                <th>LTP</th>
-                <th>Quantity</th>
-                <th>Buy</th>
-                <th>Sell</th>
-                <th>Hist. High</th>
-                <th>Hist. Low</th>
-                <th>Change</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="dataBody"></tbody>
-    </table>
+    <!-- Market Data Section -->
+    <div class="market-container">
+        <div class="market-table">
+            <h3>Subscribed Instruments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Exchange</th>
+                        <th>LTP</th>
+                        <th>Quantity</th>
+                        <th>Trigger</th>
+                        <th>Buy</th>
+                        <th>Sell</th>
+                        <th>Hist. High</th>
+                        <th>Hist. Low</th>
+                        <th>Change</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="status-panel">
+            <h3>Real-time Status</h3>
+            <div id="realtimeStatus" class="status-content"></div>
+        </div>
+    </div>
 
     <!-- Order Status -->
     <div class="order-status">
@@ -334,6 +410,8 @@
         const subscribedScripts = new Map();
         let historicalInterval = null;
         let historicalDataInterval;
+        let pollingInterval;
+        let isTriggerActive = false;
 
         function startHistoricalDataRefresh() {
             historicalDataInterval = setInterval(refreshHistoricalData, 10000);
@@ -607,22 +685,10 @@
         }
 
         // Trading Functions
-        async function placeOrder(side, scriptKey) {
+        async function placeOrder(side, scriptKey, quantity) {
             const script = subscribedScripts.get(scriptKey);
             if (!script) {
                 alert('Symbol not found!');
-                return;
-            }
-
-            const row = document.getElementById(`row-${scriptKey}`);
-            if (!row) {
-                alert('Row not found!');
-                return;
-            }
-
-            const qty = row.querySelector('.qty-input').value;
-            if (!qty || isNaN(qty)) {
-                alert('Invalid quantity!');
                 return;
             }
 
@@ -643,7 +709,7 @@
                         prd: "I",
                         exch: script.exch,
                         tsym: script.tsym,
-                        qty: qty,
+                        qty: quantity,
                         prctyp: "MKT",
                         prc: "0.0",
                         ret: "DAY",
@@ -652,7 +718,7 @@
                 });
 
                 const result = await response.json();
-                showOrderResult(result, side, script.tsym, qty, script.data?.lp || 'N/A');
+                showOrderResult(result, side, script.tsym, quantity, script.data?.lp || 'N/A');
             } catch (error) {
                 showError(`Order failed: ${error.message}`);
             }
@@ -683,12 +749,12 @@
             }
         }
 
-        function showOrderResult(result, side, symbol, qty, ltp) {
+        function showOrderResult(result, side, symbol, quantity, ltp) {
             const div = document.createElement('div');
             div.className = result.stat === 'Ok' ? 'success' : 'error';
             const displayLtp = ltp === undefined || ltp === '-' ? 'N/A' : ltp;
             div.innerHTML = result.stat === 'Ok'
-                ? `✅ ${side === 'B' ? 'Buy' : 'Sell'} ${qty} ${symbol} at LTP ${displayLtp} - Order ID: ${result.norenordno}`
+                ? `✅ ${side === 'B' ? 'Buy' : 'Sell'} ${quantity} ${symbol} at LTP ${displayLtp} - Order ID: ${result.norenordno}`
                 : `❌ Order Failed: ${result.emsg || 'Unknown error'}`;
 
             document.getElementById('orderResults').prepend(div);
@@ -703,10 +769,21 @@
                     <td>${script.exch}</td>
                     <td class="${script.data.ltpClass || ''}">${script.data.lp || '-'}</td>
                     <td><input type="number" class="qty-input" value="75" min="1"></td>
+                    <td>
+                        <input type="number" class="trigger-value" placeholder="Enter value" value="${script.triggerValue || ''}" min="0" step="any">
+                        <select class="trigger-type">
+                            <option value="no_trigger" ${script.triggerType === 'no_trigger' ? 'selected' : ''}>No Trigger</option>
+                            <option value="buy_above" ${script.triggerType === 'buy_above' ? 'selected' : ''}>Buy Above</option>
+                            <option value="buy_below" ${script.triggerType === 'buy_below' ? 'selected' : ''}>Buy Below</option>
+                            <option value="sell_above" ${script.triggerType === 'sell_above' ? 'selected' : ''}>Sell Above</option>
+                            <option value="sell_below" ${script.triggerType === 'sell_below' ? 'selected' : ''}>Sell Below</option>
+                        </select>
+                        <button class="arm-trigger">Arm Trigger</button>
+                    </td>
                     <td><button class="subscribe-btn" data-action="buy" data-script="${key}">Buy</button></td>
                     <td><button class="sell-btn" data-action="sell" data-script="${key}">Sell</button></td>
-                    <td>${script.historicalHigh}</td>
-                    <td>${script.historicalLow}</td>
+                    <td class="hist-high">${script.historicalHigh || '-'}</td>
+                    <td class="hist-low">${script.historicalLow || '-'}</td>
                     <td>${script.data.pc || '-'}</td>
                     <td><button class="unsubscribe-btn" data-script="${key}">Unsub</button></td>
                 </tr>
@@ -724,38 +801,166 @@
                     }
                 });
             });
-        }
 
-        function updateTableRow(scriptKey) {
-            const row = document.getElementById(`row-${scriptKey}`);
-            if (!row) return;
+            // Attach event listener to Arm Trigger buttons
+            tbody.querySelectorAll('.arm-trigger').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (isTriggerActive) {
+                        console.log("Trigger is already active. Please reset before arming again.");
+                        return; // Prevent multiple activations
+                    }
 
-            const script = subscribedScripts.get(scriptKey);
-            row.innerHTML = `
-                <td>${script.tsym}</td>
-                <td>${script.exch}</td>
-                <td class="${script.data.ltpClass || ''}">${script.data.lp || '-'}</td>
-                <td><input type="number" class="qty-input" value="75" min="1"></td>
-                <td><button class="subscribe-btn" data-action="buy" data-script="${scriptKey}">Buy</button></td>
-                <td><button class="sell-btn" data-action="sell" data-script="${scriptKey}">Sell</button></td>
-                <td>${script.historicalHigh}</td>
-                <td>${script.historicalLow}</td>
-                <td>${script.data.pc || '-'}</td>
-                <td><button class="unsubscribe-btn" data-script="${scriptKey}">Unsub</button></td>
-            `;
+                    let triggerValue = parseFloat(button.closest('td').querySelector('.trigger-value').value);
+                    const triggerType = button.closest('td').querySelector('.trigger-type').value;
 
-            // Reattach event listeners for Buy/Sell buttons
-            row.querySelectorAll('button[data-action]').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const action = e.target.getAttribute('data-action');
-                    const scriptKey = e.target.getAttribute('data-script');
-                    if (action === 'buy') {
-                        placeOrder('B', scriptKey);
-                    } else if (action === 'sell') {
-                        sellScript(scriptKey);
+                    // Start blinking effect
+                    const armButton = button;
+                    armButton.classList.add('active-trigger');
+                    isTriggerActive = true; // Set trigger as active
+
+                    // Live update of trigger value
+                    button.closest('td').querySelector('.trigger-value').addEventListener('input', function() {
+                        triggerValue = parseFloat(this.value);
+                        console.log(`Updated Trigger Value: ${triggerValue}`); // Log updated trigger value
+                    });
+
+                    // Check LTP continuously until triggered or reset
+                    pollingInterval = setInterval(() => {
+                        const ltpText = button.closest('tr').querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
+                        const ltp = parseFloat(ltpText);
+
+                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue}, Trigger Type: ${triggerType}`, 'condition');
+
+                        if (isNaN(triggerValue) || isNaN(ltp)) {
+                            console.error("Invalid input: triggerValue or LTP is NaN");
+                            return;
+                        }
+
+                        let conditionMet = false;
+                        switch (triggerType) {
+                            case 'buy_above': conditionMet = ltp > triggerValue; break;
+                            case 'buy_below': conditionMet = ltp < triggerValue; break;
+                            case 'sell_above': conditionMet = ltp > triggerValue; break;
+                            case 'sell_below': conditionMet = ltp < triggerValue; break;
+                        }
+
+                        updateRealtimeStatus(`Condition Met: ${conditionMet}`, 'condition');
+
+                        if (conditionMet) {
+                            const quantity = parseFloat(button.closest('tr').querySelector('.qty-input').value);
+                            updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            playBeep(); // Only beep when order is executed
+                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', button.closest('tr').querySelector('.subscribe-btn').getAttribute('data-script'), quantity.toString()); // Ensure quantity is a string
+                            clearInterval(pollingInterval); // Stop checking
+                            armButton.classList.remove('active-trigger'); // Remove blinking effect
+                            button.closest('td').querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
+                            isTriggerActive = false; // Reset trigger state
+                        }
+                    }, 1000); // Check every second
+                });
+            });
+
+            // Reset trigger when "No Trigger" is selected
+            tbody.querySelectorAll('.trigger-type').forEach(triggerSelect => {
+                triggerSelect.addEventListener('change', function() {
+                    if (this.value === 'no_trigger') {
+                        clearInterval(pollingInterval); // Stop the polling
+                        this.closest('td').querySelector('.arm-trigger').classList.remove('active-trigger'); // Remove blinking effect
+                        isTriggerActive = false; // Reset trigger state
+                        console.log("Trigger reset to initial state.");
                     }
                 });
             });
+        }
+
+        function updateTableRow(scriptKey) {
+            const script = subscribedScripts.get(scriptKey);
+            if (!script) return;
+
+            const row = document.getElementById(`row-${scriptKey}`);
+            if (!row) return;
+
+            // Update all necessary cells including historical high/low
+            const ltpCell = row.querySelector('td:nth-child(3)');
+            ltpCell.innerText = script.data.lp || '-';
+            ltpCell.className = script.data.ltpClass || '';
+
+            const histHighCell = row.querySelector('.hist-high');
+            if (histHighCell) {
+                histHighCell.innerText = script.historicalHigh || '-';
+            }
+
+            const histLowCell = row.querySelector('.hist-low');
+            if (histLowCell) {
+                histLowCell.innerText = script.historicalLow || '-';
+            }
+
+            row.querySelector('.qty-input').value = row.querySelector('.qty-input').value || '75';
+
+            // Live update of trigger value - immediate update
+            const triggerInput = row.querySelector('.trigger-value');
+            if (!triggerInput.hasEventListener) {
+                triggerInput.hasEventListener = true;
+                triggerInput.addEventListener('input', function() {
+                    const newValue = parseFloat(this.value);
+                    this.classList.add('value-changed');
+                    setTimeout(() => this.classList.remove('value-changed'), 200);
+                    updateRealtimeStatus(`Trigger value updated to: ${newValue}`, 'condition');
+                });
+            }
+
+            // Arm trigger button event
+            const armButton = row.querySelector('.arm-trigger');
+            if (!armButton.hasEventListener) {
+                armButton.hasEventListener = true;
+                armButton.addEventListener('click', function() {
+                    if (isTriggerActive) {
+                        updateRealtimeStatus("Trigger is already active. Please reset before arming again.", 'condition');
+                        return;
+                    }
+
+                    const triggerValue = parseFloat(row.querySelector('.trigger-value').value);
+                    const triggerType = row.querySelector('.trigger-type').value;
+
+                    if (triggerType === 'no_trigger') {
+                        updateRealtimeStatus("Please select a trigger type first", 'condition');
+                        return;
+                    }
+
+                    armButton.classList.add('active-trigger');
+                    isTriggerActive = true;
+                    updateRealtimeStatus(`Trigger armed: ${triggerType} at ${triggerValue}`, 'condition');
+
+                    pollingInterval = setInterval(() => {
+                        const ltpText = row.querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
+                        const ltp = parseFloat(ltpText);
+
+                        if (isNaN(triggerValue) || isNaN(ltp)) {
+                            console.error("Invalid input: triggerValue or LTP is NaN");
+                            return;
+                        }
+
+                        let conditionMet = false;
+                        switch (triggerType) {
+                            case 'buy_above': conditionMet = ltp > triggerValue; break;
+                            case 'buy_below': conditionMet = ltp < triggerValue; break;
+                            case 'sell_above': conditionMet = ltp > triggerValue; break;
+                            case 'sell_below': conditionMet = ltp < triggerValue; break;
+                        }
+
+                        if (conditionMet) {
+                            const quantity = parseFloat(row.querySelector('.qty-input').value);
+                            updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            playBeep();
+                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', scriptKey, quantity.toString());
+                            clearInterval(pollingInterval);
+                            armButton.classList.remove('active-trigger');
+                            row.querySelector('.trigger-type').value = 'no_trigger';
+                            isTriggerActive = false;
+                        }
+                    }, 100);
+                });
+            }
         }
 
         // Event Delegation for Unsubscribe Buttons
@@ -765,6 +970,21 @@
                 unsubscribe(scriptKey);
             }
         });
+
+        // Real-time Status Functions
+        function updateRealtimeStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('realtimeStatus');
+            const entry = document.createElement('div');
+            entry.className = `status-entry ${type} show`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            statusDiv.insertBefore(entry, statusDiv.firstChild);
+            
+            // Keep only last 20 entries
+            while (statusDiv.children.length > 20) {
+                statusDiv.removeChild(statusDiv.lastChild);
+            }
+        }
 
         // Initialization
         window.addEventListener('load', () => {
@@ -794,6 +1014,12 @@
                 refreshHistoricalData();
             }
         });
+
+        function playBeep() {
+            const beep = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBkCU1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTqO0vHRgDMGHm7A7+OZRA0PVqzn77BdGQlBmd3xwnQnBSF8yu7ilEELElyx6OyrWBUIQ5fc8cZ4KwUda77t5ZxHDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryynkrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAc=");
+            beep.volume = 0.1; // Set volume to 10%
+            beep.play();
+        }
     </script>
 </body>
 </html>
