@@ -261,7 +261,7 @@
     <!-- Credentials Section -->
     <div class="cred-box">
         <input type="text" id="userId" class="cred-input" placeholder="User ID">
-        <input type="password" id="userToken" class="cred-input" placeholder="token get by click green token generation button">
+        <input type="password" id="userToken" class="cred-input" placeholder="fill token Key from Green Generate token button">
         <button onclick="saveCredentials()">Save Credentials</button>
         <a href="https://script.google.com/macros/s/AKfycbwenpl5VSzLTWFZam9hsQUo5TJApl_Ej7Db5KKg07LQSDa95xSrOlq9E7kL4o0wskxvDQ/exec" 
            target="_blank" 
@@ -501,7 +501,9 @@
             const script = subscribedScripts.get(scriptKey);
             if (!script) return;
 
-            const period = parseInt(document.getElementById('historicalPeriod').value);
+            const periodSelect = document.getElementById('historicalPeriod');
+            const customInput = document.getElementById('customPeriod');
+            const period = periodSelect.value === 'custom' ? Math.max(1, parseInt(customInput.value) || 15) : periodSelect.value;
             const credentials = getCredentials();
             const istNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
             const startTime = new Date(istNow.getTime() - period * 60 * 1000);
@@ -546,7 +548,7 @@
         function refreshHistoricalData() {
             const periodSelect = document.getElementById('historicalPeriod');
             const customInput = document.getElementById('customPeriod');
-            const period = periodSelect.value === 'custom' ? customInput.value : periodSelect.value;
+            const period = periodSelect.value === 'custom' ? Math.max(1, parseInt(customInput.value) || 15) : periodSelect.value;
             subscribedScripts.forEach((_, key) => fetchHistoricalData(key));
         }
 
@@ -574,87 +576,87 @@
         }
 
         function updateMarketData(data) {
-    const scriptKey = `${data.e}|${data.tk}`;
-    if (!subscribedScripts.has(scriptKey)) return;
+            const scriptKey = `${data.e}|${data.tk}`;
+            if (!subscribedScripts.has(scriptKey)) return;
 
-    const script = subscribedScripts.get(scriptKey);
-    const ltp = parseFloat(data.lp);
-    const historicalHigh = parseFloat(script.historicalHigh);
-    const historicalLow = parseFloat(script.historicalLow);
+            const script = subscribedScripts.get(scriptKey);
+            const ltp = parseFloat(data.lp);
+            const historicalHigh = parseFloat(script.historicalHigh);
+            const historicalLow = parseFloat(script.historicalLow);
 
-    script.data = {
-        lp: ltp ? ltp.toFixed(script.pp) : script.data?.lp || '-',
-        pc: data.pc ? `${parseFloat(data.pc).toFixed(2)}%` : script.data?.pc || '-',
-        h: data.h ? parseFloat(data.h).toFixed(script.pp) : script.data?.h || '-',
-        l: data.l ? parseFloat(data.l).toFixed(script.pp) : script.data?.l || '-',
-        v: data.v || script.data?.v || '-'
-    };
+            script.data = {
+                lp: ltp ? ltp.toFixed(script.pp) : script.data?.lp || '-',
+                pc: data.pc ? `${parseFloat(data.pc).toFixed(2)}%` : script.data?.pc || '-',
+                h: data.h ? parseFloat(data.h).toFixed(script.pp) : script.data?.h || '-',
+                l: data.l ? parseFloat(data.l).toFixed(script.pp) : script.data?.l || '-',
+                v: data.v || script.data?.v || '-'
+            };
 
-    // Add blinking effect if LTP matches historical high/low
-    if (!isNaN(ltp)) {
-        if (!isNaN(historicalHigh) && ltp >= historicalHigh) {
-            script.data.ltpClass = 'blink-green';
-        } else if (!isNaN(historicalLow) && ltp <= historicalLow) {
-            script.data.ltpClass = 'blink-red';
-        } else {
-            script.data.ltpClass = '';
+            // Add blinking effect if LTP matches historical high/low
+            if (!isNaN(ltp)) {
+                if (!isNaN(historicalHigh) && ltp >= historicalHigh) {
+                    script.data.ltpClass = 'blink-green';
+                } else if (!isNaN(historicalLow) && ltp <= historicalLow) {
+                    script.data.ltpClass = 'blink-red';
+                } else {
+                    script.data.ltpClass = '';
+                }
+            }
+
+            updateTableRow(scriptKey);
         }
-    }
-
-    updateTableRow(scriptKey);
-}
 
         // Trading Functions
         async function placeOrder(side, scriptKey) {
-    const script = subscribedScripts.get(scriptKey);
-    if (!script) {
-        alert('Symbol not found!');
-        return;
-    }
+            const script = subscribedScripts.get(scriptKey);
+            if (!script) {
+                alert('Symbol not found!');
+                return;
+            }
 
-    const row = document.getElementById(`row-${scriptKey}`);
-    if (!row) {
-        alert('Row not found!');
-        return;
-    }
+            const row = document.getElementById(`row-${scriptKey}`);
+            if (!row) {
+                alert('Row not found!');
+                return;
+            }
 
-    const qty = row.querySelector('.qty-input').value;
-    if (!qty || isNaN(qty)) {
-        alert('Invalid quantity!');
-        return;
-    }
+            const qty = row.querySelector('.qty-input').value;
+            if (!qty || isNaN(qty)) {
+                alert('Invalid quantity!');
+                return;
+            }
 
-    const credentials = getCredentials();
-    if (!credentials.uid || !credentials.jKey) {
-        alert('Please enter and save credentials first!');
-        return;
-    }
+            const credentials = getCredentials();
+            if (!credentials.uid || !credentials.jKey) {
+                alert('Please enter and save credentials first!');
+                return;
+            }
 
-    try {
-        const response = await fetch('https://piconnect.flattrade.in/PiConnectTP/PlaceOrder', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `jData=${JSON.stringify({
-                uid: credentials.uid,
-                actid: credentials.uid,
-                trantype: side,
-                prd: "I",
-                exch: script.exch,
-                tsym: script.tsym,
-                qty: qty,
-                prctyp: "MKT",
-                prc: "0.0",
-                ret: "DAY",
-                remarks: "WebOrder"
-            })}&jKey=${credentials.jKey}`
-        });
+            try {
+                const response = await fetch('https://piconnect.flattrade.in/PiConnectTP/PlaceOrder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `jData=${JSON.stringify({
+                        uid: credentials.uid,
+                        actid: credentials.uid,
+                        trantype: side,
+                        prd: "I",
+                        exch: script.exch,
+                        tsym: script.tsym,
+                        qty: qty,
+                        prctyp: "MKT",
+                        prc: "0.0",
+                        ret: "DAY",
+                        remarks: "WebOrder"
+                    })}&jKey=${credentials.jKey}`
+                });
 
-        const result = await response.json();
-        showOrderResult(result, side, script.tsym, qty, script.data?.lp || 'N/A');
-    } catch (error) {
-        showError(`Order failed: ${error.message}`);
-    }
-}
+                const result = await response.json();
+                showOrderResult(result, side, script.tsym, qty, script.data?.lp || 'N/A');
+            } catch (error) {
+                showError(`Order failed: ${error.message}`);
+            }
+        }
 
         function sellScript(scriptKey) {
             placeOrder('S', scriptKey);
@@ -682,15 +684,15 @@
         }
 
         function showOrderResult(result, side, symbol, qty, ltp) {
-    const div = document.createElement('div');
-    div.className = result.stat === 'Ok' ? 'success' : 'error';
-    const displayLtp = ltp === undefined || ltp === '-' ? 'N/A' : ltp;
-    div.innerHTML = result.stat === 'Ok'
-        ? `✅ ${side === 'B' ? 'Buy' : 'Sell'} ${qty} ${symbol} at LTP ${displayLtp} - Order ID: ${result.norenordno}`
-        : `❌ Order Failed: ${result.emsg || 'Unknown error'}`;
+            const div = document.createElement('div');
+            div.className = result.stat === 'Ok' ? 'success' : 'error';
+            const displayLtp = ltp === undefined || ltp === '-' ? 'N/A' : ltp;
+            div.innerHTML = result.stat === 'Ok'
+                ? `✅ ${side === 'B' ? 'Buy' : 'Sell'} ${qty} ${symbol} at LTP ${displayLtp} - Order ID: ${result.norenordno}`
+                : `❌ Order Failed: ${result.emsg || 'Unknown error'}`;
 
-    document.getElementById('orderResults').prepend(div);
-}
+            document.getElementById('orderResults').prepend(div);
+        }
 
         // UI Rendering
         function updateTable() {
@@ -784,6 +786,12 @@
                 customInput.style.display = 'inline-block';
             } else {
                 customInput.style.display = 'none';
+            }
+        });
+
+        document.getElementById('customPeriod').addEventListener('change', function() {
+            if (document.getElementById('historicalPeriod').value === 'custom') {
+                refreshHistoricalData();
             }
         });
     </script>
