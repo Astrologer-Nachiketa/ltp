@@ -200,23 +200,23 @@
 
         /* Animations */
         @keyframes blinkGreen {
-            0% { background-color: rgba(40, 167, 69, 0.1); }
-            50% { background-color: rgba(40, 167, 69, 0.3); }
-            100% { background-color: rgba(40, 167, 69, 0.1); }
+            0% { background-color: rgba(40, 167, 69, 0.2); }
+            50% { background-color: rgba(40, 167, 69, 0.5); }
+            100% { background-color: rgba(40, 167, 69, 0.2); }
         }
 
         @keyframes blinkRed {
-            0% { background-color: rgba(220, 53, 69, 0.1); }
-            50% { background-color: rgba(220, 53, 69, 0.3); }
-            100% { background-color: rgba(220, 53, 69, 0.1); }
+            0% { background-color: rgba(220, 53, 69, 0.2); }
+            50% { background-color: rgba(220, 53, 69, 0.5); }
+            100% { background-color: rgba(220, 53, 69, 0.2); }
         }
 
         .blink-green {
-            animation: blinkGreen 1s ease 2;
+            animation: blinkGreen 1.5s infinite;
         }
 
         .blink-red {
-            animation: blinkRed 1s ease 2;
+            animation: blinkRed 1.5s infinite;
         }
 
         /* Mobile Optimization */
@@ -367,6 +367,15 @@
             animation: blinkYellow 1s infinite;
             background-color: rgba(255, 255, 0, 0.2);
         }
+
+        /* Font color classes for SMA and EMA */
+        .text-success {
+            color: #28a745;
+        }
+
+        .text-danger {
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -430,6 +439,8 @@
                         <th>Hist. High</th>
                         <th>Hist. Low</th>
                         <th>Change</th>
+                        <th>EMA (60)</th>
+                        <th>SMA (60)</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -475,6 +486,8 @@
         let historicalDataInterval;
         let pollingInterval;
         let isTriggerActive = false;
+        const MA_PERIOD = 60; // Number of ticks to store for moving averages (60 ticks)
+        const EMA_WEIGHT = 2 / (MA_PERIOD + 1); // Weighting factor for EMA calculation
 
         function startHistoricalDataRefresh() {
             historicalDataInterval = setInterval(refreshHistoricalData, 10000);
@@ -630,7 +643,10 @@
                 data: {},
                 pp: 2,
                 historicalHigh: '-',
-                historicalLow: '-'
+                historicalLow: '-',
+                ltpHistory: [],
+                sma: '-',
+                ema: '-'
             });
 
             fetchHistoricalData(scriptKey);
@@ -717,11 +733,14 @@
         }
 
         function updateMarketData(data) {
+            if (!data || !data.tk) return;
+            
             const scriptKey = `${data.e}|${data.tk}`;
             if (!subscribedScripts.has(scriptKey)) return;
 
             const script = subscribedScripts.get(scriptKey);
             const ltp = parseFloat(data.lp);
+
             const historicalHigh = parseFloat(script.historicalHigh);
             const historicalLow = parseFloat(script.historicalLow);
 
@@ -742,9 +761,45 @@
                 } else {
                     script.data.ltpClass = '';
                 }
+                
+                // Store LTP history for moving averages
+                if (!script.ltpHistory) {
+                    script.ltpHistory = [];
+                }
+                
+                // Add to LTP history
+                script.ltpHistory.push(ltp);
+                
+                // Keep only the last MA_PERIOD values
+                if (script.ltpHistory.length > MA_PERIOD) {
+                    script.ltpHistory.shift();
+                }
+                
+                // Calculate SMA and EMA if we have enough data
+                if (script.ltpHistory.length > 0) {
+                    // Calculate SMA
+                    const sma = calculateSMA(script.ltpHistory);
+                    script.sma = sma.toFixed(2);
+                    
+                    // Calculate EMA
+                    if (script.ema === '-') {
+                        // Initialize EMA with SMA if not set
+                        script.ema = sma.toFixed(2);
+                    } else {
+                        const currentEma = parseFloat(script.ema);
+                        const newEma = (ltp - currentEma) * EMA_WEIGHT + currentEma;
+                        script.ema = newEma.toFixed(2);
+                    }
+                }
             }
 
             updateTableRow(scriptKey);
+        }
+
+        // Calculate Simple Moving Average
+        function calculateSMA(data) {
+            if (!data || data.length === 0) return 0;
+            return data.reduce((a, b) => a + b, 0) / data.length;
         }
 
         // Trading Functions
@@ -859,6 +914,8 @@
                     <td class="hist-high">${script.historicalHigh || '-'}</td>
                     <td class="hist-low">${script.historicalLow || '-'}</td>
                     <td>${script.data.pc || '-'}</td>
+                    <td>${script.ema || '-'}</td>
+                    <td>${script.sma || '-'}</td>
                     <td><button class="unsubscribe-btn" data-script="${key}">Unsub</button></td>
                 </tr>
             `).join('');
@@ -973,6 +1030,39 @@
             const histLowCell = row.querySelector('.hist-low');
             if (histLowCell) {
                 histLowCell.innerText = script.historicalLow || '-';
+            }
+
+            const emaCell = row.querySelector('td:nth-child(11)');
+            if (emaCell) {
+                emaCell.innerText = script.ema || '-';
+            }
+
+            const smaCell = row.querySelector('td:nth-child(12)');
+            if (smaCell) {
+                smaCell.innerText = script.sma || '-';
+            }
+            
+            // Compare SMA and EMA and apply color to their font instead of blinking the row
+            if (script.sma !== '-' && script.ema !== '-') {
+                const sma = parseFloat(script.sma);
+                const ema = parseFloat(script.ema);
+                
+                // Remove any existing row blinking classes
+                row.classList.remove('blink-green', 'blink-red');
+                
+                // Clear previous font colors
+                smaCell.classList.remove('text-success', 'text-danger');
+                emaCell.classList.remove('text-success', 'text-danger');
+                
+                // Apply appropriate font color based on comparison
+                if (sma > ema) {
+                    smaCell.classList.add('text-success'); // SMA is higher - green
+                    emaCell.classList.add('text-danger');  // EMA is lower - red
+                } else if (sma < ema) {
+                    smaCell.classList.add('text-danger');  // SMA is lower - red
+                    emaCell.classList.add('text-success'); // EMA is higher - green
+                }
+                // If they're equal, neither gets a color
             }
 
             row.querySelector('.qty-input').value = row.querySelector('.qty-input').value || '75';
@@ -1150,7 +1240,7 @@
         });
 
         function playBeep() {
-            const beep = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBkCU1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTqO0vHRgDMGHm7A7+OZRA0PVqzn77BdGQlBmd3xwnQnBSF8yu7ilEELElyx6OyrWBUIQ5fc8cZ4KwUda77t5ZxHDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryynkrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAc=");
+            const beep = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBkCU1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTqO0vHRgDMGHm7A7+OZRA0PVqzn77BdGQlBmd3xwnQnBSF8yu7ilEELElyx6OyrWBUIQ5fc8cZ4KwUda77t5ZxHDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryynkrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAc=");
             beep.volume = 1.0; // Maximum volume
             beep.play();
         }
