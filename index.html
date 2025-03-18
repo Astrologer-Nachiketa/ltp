@@ -278,7 +278,7 @@
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            max-width: 400px;
+            min-width: 300px;
         }
         .status-content {
             font-family: monospace;
@@ -319,6 +319,52 @@
         }
 
         .value-changed {
+            background-color: rgba(255, 255, 0, 0.2);
+        }
+
+        /* Order Book Styles */
+        .order-book {
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .refresh-btn {
+            background: #6c757d;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .order-table th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 1;
+        }
+
+        /* Success Message Blink Animation */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        .success.blink {
+            animation: blink 0.5s ease-in-out infinite;
+            animation-iteration-count: 10; /* Will blink for 5 seconds (10 iterations * 0.5s) */
+        }
+
+        /* Trigger Arm Animation */
+        @keyframes blinkYellow {
+            0% { background-color: rgba(255, 255, 0, 0.1); }
+            50% { background-color: rgba(255, 255, 0, 0.3); }
+            100% { background-color: rgba(255, 255, 0, 0.1); }
+        }
+
+        .active-trigger {
+            animation: blinkYellow 1s infinite;
             background-color: rgba(255, 255, 0, 0.2);
         }
     </style>
@@ -397,10 +443,27 @@
         </div>
     </div>
 
-    <!-- Order Status -->
-    <div class="order-status">
-        <h3>Order Status</h3>
-        <div id="orderResults"></div>
+    <!-- Order Book Section -->
+    <div class="order-book">
+        <h3>Order Book</h3>
+        <button onclick="fetchOrderBook()" class="refresh-btn">Refresh Orders</button>
+        <div id="orderStatus"></div>
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Order No</th>
+                    <th>Symbol</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>Filled Qty</th>
+                    <th>Avg Price</th>
+                </tr>
+            </thead>
+            <tbody id="orderBody">
+            </tbody>
+        </table>
     </div>
 
     <script>
@@ -750,14 +813,25 @@
         }
 
         function showOrderResult(result, side, symbol, quantity, ltp) {
-            const div = document.createElement('div');
-            div.className = result.stat === 'Ok' ? 'success' : 'error';
-            const displayLtp = ltp === undefined || ltp === '-' ? 'N/A' : ltp;
-            div.innerHTML = result.stat === 'Ok'
-                ? `✅ ${side === 'B' ? 'Buy' : 'Sell'} ${quantity} ${symbol} at LTP ${displayLtp} - Order ID: ${result.norenordno}`
-                : `❌ Order Failed: ${result.emsg || 'Unknown error'}`;
-
-            document.getElementById('orderResults').prepend(div);
+            const statusDiv = document.getElementById('orderStatus');
+            if (result.stat === 'Ok') {
+                const message = `✅ ${side} ${quantity} ${symbol} at LTP ${ltp} - Order ID: ${result.norenordno}`;
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success blink';
+                successDiv.textContent = message;
+                statusDiv.innerHTML = '';
+                statusDiv.appendChild(successDiv);
+                
+                // Remove blink effect after 5 seconds
+                setTimeout(() => {
+                    successDiv.classList.remove('blink');
+                }, 5000);
+                
+                playBeep();
+                setTimeout(fetchOrderBook, 1000);
+            } else {
+                statusDiv.innerHTML = `<div class="error">❌ Order Failed: ${result.emsg || 'Unknown error'}</div>`;
+            }
         }
 
         // UI Rendering
@@ -850,12 +924,17 @@
                         if (conditionMet) {
                             const quantity = parseFloat(button.closest('tr').querySelector('.qty-input').value);
                             updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
-                            playBeep(); // Only beep when order is executed
-                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', button.closest('tr').querySelector('.subscribe-btn').getAttribute('data-script'), quantity.toString()); // Ensure quantity is a string
-                            clearInterval(pollingInterval); // Stop checking
-                            armButton.classList.remove('active-trigger'); // Remove blinking effect
-                            button.closest('td').querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
-                            isTriggerActive = false; // Reset trigger state
+                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', button.closest('tr').querySelector('.subscribe-btn').getAttribute('data-script'), quantity.toString())
+                                .then(() => {
+                                    playBeep(); // Play beep when trigger order is successful
+                                    clearInterval(pollingInterval); // Stop checking after successful order
+                                    armButton.classList.remove('active-trigger'); // Remove blinking effect
+                                    button.closest('td').querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
+                                    isTriggerActive = false;
+                                })
+                                .catch(error => {
+                                    console.error('Order placement error:', error);
+                                });
                         }
                     }, 1000); // Check every second
                 });
@@ -952,12 +1031,17 @@
                         if (conditionMet) {
                             const quantity = parseFloat(row.querySelector('.qty-input').value);
                             updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
-                            playBeep();
-                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', scriptKey, quantity.toString());
-                            clearInterval(pollingInterval);
-                            armButton.classList.remove('active-trigger');
-                            row.querySelector('.trigger-type').value = 'no_trigger';
-                            isTriggerActive = false;
+                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', scriptKey, quantity.toString())
+                                .then(() => {
+                                    playBeep(); // Play beep when trigger order is successful
+                                    clearInterval(pollingInterval);
+                                    armButton.classList.remove('active-trigger');
+                                    row.querySelector('.trigger-type').value = 'no_trigger';
+                                    isTriggerActive = false;
+                                })
+                                .catch(error => {
+                                    console.error('Order placement error:', error);
+                                });
                         }
                     }, 100);
                 });
@@ -987,6 +1071,54 @@
             }
         }
 
+        // Order Book Functions
+        async function fetchOrderBook() {
+            const credentials = getCredentials();
+            if (!credentials.uid || !credentials.jKey) {
+                showError('Please enter and save credentials first!');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://piconnect.flattrade.in/PiConnectTP/OrderBook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `jData=${JSON.stringify({
+                        uid: credentials.uid
+                    })}&jKey=${credentials.jKey}`
+                });
+
+                const result = await response.json();
+                if (Array.isArray(result)) {
+                    displayOrders(result);
+                } else if (result.stat === 'Not_Ok') {
+                    showError(result.emsg || 'Failed to fetch orders');
+                }
+            } catch (error) {
+                showError(`Failed to fetch order book: ${error.message}`);
+            }
+        }
+
+        function displayOrders(orders) {
+            const orderBody = document.getElementById('orderBody');
+            orderBody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.norenordno || 'N/A'}</td>
+                    <td>${order.tsym || 'N/A'}</td>
+                    <td>${order.qty || '0'}</td>
+                    <td>${order.status || 'N/A'}</td>
+                    <td>${order.trantype || 'N/A'}</td>
+                    <td>${order.prc || '0'}</td>
+                    <td>${order.fillshares || '0'}</td>
+                    <td>${order.avgprc || '0'}</td>
+                `;
+                orderBody.appendChild(row);
+            });
+        }
+
         // Initialization
         window.addEventListener('load', () => {
             const savedCreds = localStorage.getItem('ftCredentials');
@@ -997,6 +1129,7 @@
             }
             selectExchange('NSE');
             startHistoricalDataRefresh();
+            fetchOrderBook();
         });
 
         window.addEventListener('beforeunload', stopHistoricalDataRefresh);
@@ -1018,7 +1151,7 @@
 
         function playBeep() {
             const beep = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBkCU1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTqO0vHRgDMGHm7A7+OZRA0PVqzn77BdGQlBmd3xwnQnBSF8yu7ilEELElyx6OyrWBUIQ5fc8cZ4KwUda77t5ZxHDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryynkrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAc=");
-            beep.volume = 0.3; // Set volume to 30%
+            beep.volume = 1.0; // Maximum volume
             beep.play();
         }
     </script>
