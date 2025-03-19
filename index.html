@@ -358,14 +358,14 @@
 
         /* Trigger Arm Animation */
         @keyframes blinkYellow {
-            0% { background-color: rgba(255, 255, 0, 0.1); }
-            50% { background-color: rgba(255, 255, 0, 0.3); }
-            100% { background-color: rgba(255, 255, 0, 0.1); }
+            0% { background-color: rgba(255, 215, 0, 0.6); }
+            50% { background-color: rgba(255, 215, 0, 0.9); }
+            100% { background-color: rgba(255, 215, 0, 0.6); }
         }
 
         .active-trigger {
             animation: blinkYellow 1s infinite;
-            background-color: rgba(255, 255, 0, 0.2);
+            background-color: rgba(255, 215, 0, 0.7);
         }
 
         /* Font color classes for SMA and EMA */
@@ -939,11 +939,22 @@
                 button.addEventListener('click', function() {
                     if (isTriggerActive) {
                         console.log("Trigger is already active. Please reset before arming again.");
+                        updateRealtimeStatus("Trigger is already active. Please reset before arming again.", 'condition');
                         return; // Prevent multiple activations
                     }
 
                     let triggerValue = parseFloat(button.closest('td').querySelector('.trigger-value').value);
                     const triggerType = button.closest('td').querySelector('.trigger-type').value;
+                    
+                    if (triggerType === 'no_trigger') {
+                        updateRealtimeStatus("Cannot arm trigger: A valid trigger type must be selected", 'error');
+                        return;
+                    }
+                    
+                    if (isNaN(triggerValue)) {
+                        updateRealtimeStatus("Cannot arm trigger: Trigger value must be set", 'error');
+                        return;
+                    }
 
                     // Start blinking effect
                     const armButton = button;
@@ -1089,21 +1100,35 @@
                         return;
                     }
 
-                    const triggerValue = parseFloat(row.querySelector('.trigger-value').value);
+                    let triggerValue = parseFloat(row.querySelector('.trigger-value').value);
                     const triggerType = row.querySelector('.trigger-type').value;
 
                     if (triggerType === 'no_trigger') {
-                        updateRealtimeStatus("Please select a trigger type first", 'condition');
+                        updateRealtimeStatus("Cannot arm trigger: A valid trigger type must be selected", 'error');
+                        return;
+                    }
+                    
+                    if (isNaN(triggerValue)) {
+                        updateRealtimeStatus("Cannot arm trigger: Trigger value must be set", 'error');
                         return;
                     }
 
+                    // Start blinking effect
                     armButton.classList.add('active-trigger');
-                    isTriggerActive = true;
-                    updateRealtimeStatus(`Trigger armed: ${triggerType} at ${triggerValue}`, 'condition');
+                    isTriggerActive = true; // Set trigger as active
 
+                    // Live update of trigger value
+                    row.querySelector('.trigger-value').addEventListener('input', function() {
+                        triggerValue = parseFloat(this.value);
+                        console.log(`Updated Trigger Value: ${triggerValue}`); // Log updated trigger value
+                    });
+
+                    // Check LTP continuously until triggered or reset
                     pollingInterval = setInterval(() => {
                         const ltpText = row.querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
                         const ltp = parseFloat(ltpText);
+
+                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue}, Trigger Type: ${triggerType}`, 'condition');
 
                         if (isNaN(triggerValue) || isNaN(ltp)) {
                             console.error("Invalid input: triggerValue or LTP is NaN");
@@ -1118,22 +1143,24 @@
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
                         }
 
+                        updateRealtimeStatus(`Condition Met: ${conditionMet}`, 'condition');
+
                         if (conditionMet) {
                             const quantity = parseFloat(row.querySelector('.qty-input').value);
                             updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
-                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', scriptKey, quantity.toString())
+                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', row.querySelector('.subscribe-btn').getAttribute('data-script'), quantity.toString())
                                 .then(() => {
                                     playBeep(); // Play beep when trigger order is successful
-                                    clearInterval(pollingInterval);
-                                    armButton.classList.remove('active-trigger');
-                                    row.querySelector('.trigger-type').value = 'no_trigger';
+                                    clearInterval(pollingInterval); // Stop checking after successful order
+                                    armButton.classList.remove('active-trigger'); // Remove blinking effect
+                                    row.querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
                                     isTriggerActive = false;
                                 })
                                 .catch(error => {
                                     console.error('Order placement error:', error);
                                 });
                         }
-                    }, 100);
+                    }, 1000); // Check every second
                 });
             }
         }
