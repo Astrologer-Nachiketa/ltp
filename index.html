@@ -520,26 +520,95 @@
             };
         }
 
+        // Function to save subscribed instruments to localStorage
+        function saveSubscribedInstruments() {
+            const instrumentsData = Array.from(subscribedScripts.entries()).map(([key, value]) => {
+                return {
+                    key: key,
+                    tsym: value.tsym,
+                    exch: value.exch,
+                    token: value.token
+                };
+            });
+            localStorage.setItem('ftSubscribedInstruments', JSON.stringify(instrumentsData));
+            console.log('Subscribed instruments saved to localStorage:', instrumentsData.length);
+        }
+
+        // Function to load subscribed instruments from localStorage
+        function loadSubscribedInstruments() {
+            const savedInstruments = localStorage.getItem('ftSubscribedInstruments');
+            if (savedInstruments) {
+                try {
+                    const instruments = JSON.parse(savedInstruments);
+                    console.log('Loading saved instruments:', instruments.length);
+                    return instruments;
+                } catch (error) {
+                    console.error('Error parsing saved instruments:', error);
+                }
+            }
+            return [];
+        }
+
+        // Function to subscribe to saved instruments
+        function subscribeToSavedInstruments() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                console.log('WebSocket not connected, can\'t subscribe to saved instruments yet');
+                return false;
+            }
+
+            const instruments = loadSubscribedInstruments();
+            if (instruments.length > 0) {
+                console.log('Subscribing to saved instruments:', instruments.length);
+                instruments.forEach(instrument => {
+                    if (!subscribedScripts.has(instrument.key)) {
+                        subscribe(instrument.key, instrument.tsym);
+                    }
+                });
+                return true;
+            }
+            return false;
+        }
+
         // WebSocket Management
         function connectWS() {
-            if (ws) return;
-
-            const credentials = getCredentials();
-            if (!credentials.uid || !credentials.jKey) {
-                alert('Please enter credentials first!');
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                alert('Already connected');
                 return;
             }
 
-            updateStatus('connecting');
+            const credentials = getCredentials();
+            if (!credentials.uid || !credentials.jKey) {
+                alert('Please enter User ID and User Token');
+                return;
+            }
+
+            manualDisconnect = false;
+            
             ws = new WebSocket('wss://piconnect.flattrade.in/PiConnectWSTp/');
 
+            updateStatus('connecting...');
+
             ws.onopen = () => {
-                ws.send(JSON.stringify({
+                console.log('Connected to WebSocket');
+                updateStatus('connected');
+
+                // Send authentication message
+                const authMessage = {
                     t: "c",
                     uid: credentials.uid,
                     actid: credentials.uid,
                     susertoken: credentials.jKey
-                }));
+                };
+                
+                ws.send(JSON.stringify(authMessage));
+                
+                // Try to subscribe to saved instruments after successful connection
+                setTimeout(() => {
+                    subscribeToSavedInstruments();
+                }, 1000); // Small delay to ensure connection is ready
+                
+                // Start polling for historical data
+                startHistoricalDataRefresh();
             };
 
             ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
@@ -658,6 +727,9 @@
             fetchHistoricalData(scriptKey);
             ws.send(JSON.stringify({ t: "t", k: scriptKey }));
             updateTable();
+            
+            // Save subscribed instruments to localStorage
+            saveSubscribedInstruments();
         }
 
         async function fetchHistoricalData(scriptKey) {
@@ -868,6 +940,9 @@
                 ws.send(JSON.stringify({ t: "u", k: scriptKey }));
                 console.log('Unsubscribed:', scriptKey);
                 updateTable();
+                
+                // Save subscribed instruments to localStorage after unsubscribing
+                saveSubscribedInstruments();
             } catch (error) {
                 console.error('Unsubscribe failed:', error);
             }
@@ -1398,6 +1473,9 @@
                 document.getElementById('userId').value = uid;
                 document.getElementById('userToken').value = jKey;
                 document.getElementById('telegramChatId').value = telegramChatId;
+                
+                // Attempt to connect automatically if credentials are available
+                connectWS();
             }
             selectExchange('NSE');
             startHistoricalDataRefresh();
