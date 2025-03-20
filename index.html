@@ -3,6 +3,7 @@
 <head>
     <title>FlatTrade Market Stream & Trading</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
     <style>
         /* General Styles */
         body {
@@ -489,6 +490,12 @@
         let isTriggerActive = false;
         const MA_PERIOD = 60; // Number of ticks to store for moving averages (60 ticks)
         const EMA_WEIGHT = 2 / (MA_PERIOD + 1); // Weighting factor for EMA calculation
+
+        // Silent audio element for keeping the page active
+        let silentAudio = null;
+        
+        // Keep track of the Wake Lock reference
+        let wakeLock = null;
 
         function startHistoricalDataRefresh() {
             historicalDataInterval = setInterval(refreshHistoricalData, 10000);
@@ -1480,6 +1487,10 @@
             selectExchange('NSE');
             startHistoricalDataRefresh();
             fetchOrderBook();
+            
+            // Start Wake Lock and Audio to prevent background suspension
+            startWakeLock();
+            startSilentAudio();
         });
 
         window.addEventListener('beforeunload', stopHistoricalDataRefresh);
@@ -1504,6 +1515,113 @@
             beep.volume = 1.0; // Maximum volume
             beep.play();
         }
+
+        // Start Wake Lock to prevent screen from turning off
+        async function startWakeLock() {
+            if (!navigator.wakeLock) {
+                console.log("Wake Lock API not supported in this browser");
+                return;
+            }
+            
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log("Wake Lock active");
+                
+                // Auto re-acquire when released
+                wakeLock.addEventListener('release', () => {
+                    console.log("Wake Lock released, attempting to reacquire...");
+                    setTimeout(() => {
+                        startWakeLock();
+                    }, 1000);
+                });
+                
+            } catch (err) {
+                console.error(`Failed to acquire Wake Lock: ${err.message}`);
+            }
+        }
+        
+        // Release the Wake Lock manually if needed
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release().then(() => {
+                    console.log("Wake Lock released manually");
+                    wakeLock = null;
+                });
+            }
+        }
+        
+        // Start silent audio trick to prevent tab suspension
+        function startSilentAudio() {
+            if (silentAudio) {
+                try {
+                    silentAudio.pause();
+                } catch (e) {}
+            }
+            
+            silentAudio = new Audio();
+            silentAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+            silentAudio.loop = true;
+            
+            // Lower the volume to nearly silent
+            silentAudio.volume = 0.01;
+            
+            // Try to play the silent audio
+            silentAudio.play().catch(err => {
+                console.log("Silent audio couldn't autostart: " + err.message);
+                
+                // Add a user interaction event listener to start audio
+                document.addEventListener('click', function audioStartHandler() {
+                    silentAudio.play().then(() => {
+                        console.log("Silent audio started after user interaction");
+                        document.removeEventListener('click', audioStartHandler);
+                    }).catch(e => console.error("Audio still failed to play:", e));
+                }, { once: false });
+            });
+        }
+        
+        // Reacquire Wake Lock when the page becomes visible again
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !wakeLock) {
+                console.log("Page visible again, reacquiring Wake Lock");
+                startWakeLock();
+            }
+            
+            // Also make sure audio is still playing
+            if (document.visibilityState === 'visible' && silentAudio) {
+                if (silentAudio.paused) {
+                    silentAudio.play().catch(err => console.log("Failed to restart audio:", err));
+                }
+            }
+        });
+        
+        // Additional fallback - keep page active with a heartbeat timer
+        setInterval(() => {
+            console.log("Heartbeat: " + new Date().toISOString());
+            
+            // If Wake Lock was lost, try to reacquire it
+            if (!wakeLock && navigator.wakeLock) {
+                startWakeLock();
+            }
+            
+            // If audio stopped, try to restart it
+            if (silentAudio && silentAudio.paused) {
+                silentAudio.play().catch(() => {});
+            }
+        }, 30000);
+        
+        // Hook into WebSocket connect/disconnect to manage Wake Lock and audio
+        const originalConnectWS = connectWS;
+        connectWS = function() {
+            originalConnectWS();
+            startWakeLock();
+            startSilentAudio();
+        };
+        
+        const originalDisconnectWS = disconnectWS;
+        disconnectWS = function() {
+            originalDisconnectWS();
+            // Don't release wake lock on disconnect to keep app running in background
+        };
     </script>
 </body>
 </html>
