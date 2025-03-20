@@ -358,14 +358,14 @@
 
         /* Trigger Arm Animation */
         @keyframes blinkYellow {
-            0% { background-color: rgba(255, 215, 0, 0.6); }
-            50% { background-color: rgba(255, 215, 0, 0.9); }
-            100% { background-color: rgba(255, 215, 0, 0.6); }
+            0% { background-color: rgba(255, 255, 0, 0.1); }
+            50% { background-color: rgba(255, 255, 0, 0.3); }
+            100% { background-color: rgba(255, 255, 0, 0.1); }
         }
 
         .active-trigger {
             animation: blinkYellow 1s infinite;
-            background-color: rgba(255, 215, 0, 0.7);
+            background-color: rgba(255, 255, 0, 0.2);
         }
 
         /* Font color classes for SMA and EMA */
@@ -383,10 +383,11 @@
     <div class="cred-box">
         <input type="text" id="userId" class="cred-input" placeholder="User ID">
         <input type="password" id="userToken" class="cred-input" placeholder="fill token Key from Green Generate token button">
+        <input type="text" id="telegramChatId" class="cred-input" placeholder="Telegram Chat ID">
         <button onclick="saveCredentials()">Save Credentials</button>
         <a href="https://script.google.com/macros/s/AKfycbwenpl5VSzLTWFZam9hsQUo5TJApl_Ej7Db5KKg07LQSDa95xSrOlq9E7kL4o0wskxvDQ/exec" 
            target="_blank" 
-           style="display: inline-block; padding: 8px 16px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px;">
+           style="background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin-left: 5px; padding: 8px 16px; display: inline-block;">
             Generate Token
         </a>
         <div style="margin-top: 10px; font-size: 14px; color: #666;">
@@ -503,7 +504,8 @@
         function saveCredentials() {
             const credentials = {
                 uid: document.getElementById('userId').value.trim(),
-                jKey: document.getElementById('userToken').value.trim()
+                jKey: document.getElementById('userToken').value.trim(),
+                telegramChatId: document.getElementById('telegramChatId').value.trim()
             };
             localStorage.setItem('ftCredentials', JSON.stringify(credentials));
             alert('Credentials saved!');
@@ -513,7 +515,8 @@
             const savedCreds = JSON.parse(localStorage.getItem('ftCredentials') || '{}');
             return {
                 uid: document.getElementById('userId').value.trim() || savedCreds.uid,
-                jKey: document.getElementById('userToken').value.trim() || savedCreds.jKey
+                jKey: document.getElementById('userToken').value.trim() || savedCreds.jKey,
+                telegramChatId: document.getElementById('telegramChatId').value.trim() || savedCreds.telegramChatId
             };
         }
 
@@ -646,7 +649,10 @@
                 historicalLow: '-',
                 ltpHistory: [],
                 sma: '-',
-                ema: '-'
+                ema: '-',
+                triggerValue: '',
+                triggerValueSource: 'fixed',
+                triggerType: 'no_trigger'
             });
 
             fetchHistoricalData(scriptKey);
@@ -882,6 +888,16 @@
                     successDiv.classList.remove('blink');
                 }, 5000);
                 
+                // Send trade details to Telegram
+                sendTradeToTelegram({
+                    symbol: symbol,
+                    price: ltp,
+                    quantity: quantity,
+                    orderType: side === 'B' ? 'BUY' : 'SELL',
+                    orderId: result.norenordno,
+                    timestamp: new Date().toISOString()
+                });
+                
                 playBeep();
                 setTimeout(fetchOrderBook, 1000);
             } else {
@@ -889,6 +905,78 @@
             }
         }
 
+        // Function to send trade details to Telegram
+        function sendTradeToTelegram(tradeData) {
+            // Get the Telegram chat ID from credentials
+            const credentials = getCredentials();
+            const chatId = credentials.telegramChatId;
+            
+            // Validate that chat ID is available
+            if (!chatId) {
+                console.error("Telegram chat ID not provided. Please enter your chat ID in the credentials section.");
+                updateRealtimeStatus("Telegram notification failed: No chat ID provided", 'error');
+                return;
+            }
+            
+            updateRealtimeStatus(`Sending trade notification to Telegram for ${tradeData.symbol}`, 'info');
+            
+            // Format the message with trade details
+            const timestamp = new Date().toLocaleString('en-IN', { 
+                timeZone: 'Asia/Kolkata',
+                dateStyle: 'medium', 
+                timeStyle: 'medium' 
+            });
+            
+            const message = `🔔 *Trade Notification*\n\n` +
+                           `*Symbol:* ${tradeData.symbol}\n` +
+                           `*Order Type:* ${tradeData.orderType}\n` +
+                           `*Quantity:* ${tradeData.quantity}\n` +
+                           `*Price:* ₹${tradeData.price}\n` +
+                           `*Order ID:* ${tradeData.orderId}\n` +
+                           `*Time:* ${timestamp}`;
+            
+            // Telegram Bot API configuration
+            const botToken = '5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k';
+            const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            
+            // Create request for Telegram API
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", telegramApiUrl, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log("Telegram notification sent successfully");
+                    console.log("Response:", xhr.responseText);
+                    updateRealtimeStatus(`Trade notification sent to Telegram`, 'info');
+                } else {
+                    console.error("Telegram API error:", xhr.status, xhr.responseText);
+                    updateRealtimeStatus(`Failed to send Telegram notification: ${xhr.status}`, 'error');
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error("Network error when sending to Telegram");
+                updateRealtimeStatus(`Network error when sending to Telegram`, 'error');
+            };
+            
+            // Prepare the payload
+            const payload = JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'Markdown'
+            });
+            
+            // Send the request
+            try {
+                xhr.send(payload);
+                console.log("Telegram notification request sent", message);
+            } catch (error) {
+                console.error("Error sending Telegram notification:", error);
+                updateRealtimeStatus(`Error sending notification: ${error.message}`, 'error');
+            }
+        }
+        
         // UI Rendering
         function updateTable() {
             const tbody = document.getElementById('dataBody');
@@ -900,6 +988,11 @@
                     <td><input type="number" class="qty-input" value="75" min="1"></td>
                     <td>
                         <input type="number" class="trigger-value" placeholder="Enter value" value="${script.triggerValue || ''}" min="0" step="any">
+                        <select class="trigger-value-source">
+                            <option value="fixed" ${script.triggerValueSource === 'fixed' ? 'selected' : ''}>Fixed Value</option>
+                            <option value="ema" ${script.triggerValueSource === 'ema' ? 'selected' : ''}>EMA (60)</option>
+                            <option value="sma" ${script.triggerValueSource === 'sma' ? 'selected' : ''}>SMA (60)</option>
+                        </select>
                         <select class="trigger-type">
                             <option value="no_trigger" ${script.triggerType === 'no_trigger' ? 'selected' : ''}>No Trigger</option>
                             <option value="buy_above" ${script.triggerType === 'buy_above' ? 'selected' : ''}>Buy Above</option>
@@ -939,21 +1032,42 @@
                 button.addEventListener('click', function() {
                     if (isTriggerActive) {
                         console.log("Trigger is already active. Please reset before arming again.");
-                        updateRealtimeStatus("Trigger is already active. Please reset before arming again.", 'condition');
                         return; // Prevent multiple activations
                     }
 
-                    let triggerValue = parseFloat(button.closest('td').querySelector('.trigger-value').value);
+                    let triggerValue;
+                    const triggerValueSource = button.closest('td').querySelector('.trigger-value-source').value;
                     const triggerType = button.closest('td').querySelector('.trigger-type').value;
                     
+                    // Validate that a trigger type is selected
                     if (triggerType === 'no_trigger') {
-                        updateRealtimeStatus("Cannot arm trigger: A valid trigger type must be selected", 'error');
+                        updateRealtimeStatus("Please select a trigger type before arming.", 'error');
                         return;
                     }
                     
-                    if (isNaN(triggerValue)) {
-                        updateRealtimeStatus("Cannot arm trigger: Trigger value must be set", 'error');
-                        return;
+                    // Determine the source of the trigger value
+                    if (triggerValueSource === 'fixed') {
+                        const triggerInputElement = button.closest('td').querySelector('.trigger-value');
+                        if (!triggerInputElement.value || isNaN(parseFloat(triggerInputElement.value))) {
+                            updateRealtimeStatus("Please enter a valid trigger value before arming.", 'error');
+                            triggerInputElement.focus();
+                            return;
+                        }
+                        triggerValue = parseFloat(triggerInputElement.value);
+                    } else if (triggerValueSource === 'ema') {
+                        const emaValue = button.closest('tr').querySelector('td:nth-child(11)').innerText;
+                        triggerValue = parseFloat(emaValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("EMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
+                    } else if (triggerValueSource === 'sma') {
+                        const smaValue = button.closest('tr').querySelector('td:nth-child(12)').innerText;
+                        triggerValue = parseFloat(smaValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
                     }
 
                     // Start blinking effect
@@ -961,19 +1075,30 @@
                     armButton.classList.add('active-trigger');
                     isTriggerActive = true; // Set trigger as active
 
-                    // Live update of trigger value
-                    button.closest('td').querySelector('.trigger-value').addEventListener('input', function() {
-                        triggerValue = parseFloat(this.value);
-                        console.log(`Updated Trigger Value: ${triggerValue}`); // Log updated trigger value
-                    });
+                    // Live update of trigger value (only for fixed value)
+                    if (triggerValueSource === 'fixed') {
+                        button.closest('td').querySelector('.trigger-value').addEventListener('input', function() {
+                            triggerValue = parseFloat(this.value);
+                            console.log(`Updated Trigger Value: ${triggerValue}`); // Log updated trigger value
+                        });
+                    }
 
                     // Check LTP continuously until triggered or reset
                     pollingInterval = setInterval(() => {
                         const ltpText = button.closest('tr').querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
                         const ltp = parseFloat(ltpText);
+                        
+                        // Update the trigger value if using EMA or SMA
+                        if (triggerValueSource === 'ema') {
+                            const emaValue = button.closest('tr').querySelector('td:nth-child(11)').innerText;
+                            triggerValue = parseFloat(emaValue);
+                        } else if (triggerValueSource === 'sma') {
+                            const smaValue = button.closest('tr').querySelector('td:nth-child(12)').innerText;
+                            triggerValue = parseFloat(smaValue);
+                        }
 
-                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue}, Trigger Type: ${triggerType}`, 'condition');
-
+                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
+                        
                         if (isNaN(triggerValue) || isNaN(ltp)) {
                             console.error("Invalid input: triggerValue or LTP is NaN");
                             return;
@@ -986,8 +1111,6 @@
                             case 'sell_above': conditionMet = ltp > triggerValue; break;
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
                         }
-
-                        updateRealtimeStatus(`Condition Met: ${conditionMet}`, 'condition');
 
                         if (conditionMet) {
                             const quantity = parseFloat(button.closest('tr').querySelector('.qty-input').value);
@@ -1100,36 +1223,69 @@
                         return;
                     }
 
-                    let triggerValue = parseFloat(row.querySelector('.trigger-value').value);
+                    let triggerValue;
+                    const triggerValueSource = row.querySelector('.trigger-value-source').value;
                     const triggerType = row.querySelector('.trigger-type').value;
-
+                    
+                    // Validate that a trigger type is selected
                     if (triggerType === 'no_trigger') {
-                        updateRealtimeStatus("Cannot arm trigger: A valid trigger type must be selected", 'error');
+                        updateRealtimeStatus("Please select a trigger type before arming.", 'error');
                         return;
                     }
                     
-                    if (isNaN(triggerValue)) {
-                        updateRealtimeStatus("Cannot arm trigger: Trigger value must be set", 'error');
-                        return;
+                    // Determine the source of the trigger value
+                    if (triggerValueSource === 'fixed') {
+                        const triggerInputElement = row.querySelector('.trigger-value');
+                        if (!triggerInputElement.value || isNaN(parseFloat(triggerInputElement.value))) {
+                            updateRealtimeStatus("Please enter a valid trigger value before arming.", 'error');
+                            triggerInputElement.focus();
+                            return;
+                        }
+                        triggerValue = parseFloat(triggerInputElement.value);
+                    } else if (triggerValueSource === 'ema') {
+                        const emaValue = row.querySelector('td:nth-child(11)').innerText;
+                        triggerValue = parseFloat(emaValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("EMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
+                    } else if (triggerValueSource === 'sma') {
+                        const smaValue = row.querySelector('td:nth-child(12)').innerText;
+                        triggerValue = parseFloat(smaValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
                     }
 
                     // Start blinking effect
                     armButton.classList.add('active-trigger');
                     isTriggerActive = true; // Set trigger as active
 
-                    // Live update of trigger value
-                    row.querySelector('.trigger-value').addEventListener('input', function() {
-                        triggerValue = parseFloat(this.value);
-                        console.log(`Updated Trigger Value: ${triggerValue}`); // Log updated trigger value
-                    });
+                    // Live update of trigger value (only for fixed value)
+                    if (triggerValueSource === 'fixed') {
+                        row.querySelector('.trigger-value').addEventListener('input', function() {
+                            triggerValue = parseFloat(this.value);
+                            console.log(`Updated Trigger Value: ${triggerValue}`); // Log updated trigger value
+                        });
+                    }
 
                     // Check LTP continuously until triggered or reset
                     pollingInterval = setInterval(() => {
                         const ltpText = row.querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
                         const ltp = parseFloat(ltpText);
+                        
+                        // Update the trigger value if using EMA or SMA
+                        if (triggerValueSource === 'ema') {
+                            const emaValue = row.querySelector('td:nth-child(11)').innerText;
+                            triggerValue = parseFloat(emaValue);
+                        } else if (triggerValueSource === 'sma') {
+                            const smaValue = row.querySelector('td:nth-child(12)').innerText;
+                            triggerValue = parseFloat(smaValue);
+                        }
 
-                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue}, Trigger Type: ${triggerType}`, 'condition');
-
+                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
+                        
                         if (isNaN(triggerValue) || isNaN(ltp)) {
                             console.error("Invalid input: triggerValue or LTP is NaN");
                             return;
@@ -1142,8 +1298,6 @@
                             case 'sell_above': conditionMet = ltp > triggerValue; break;
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
                         }
-
-                        updateRealtimeStatus(`Condition Met: ${conditionMet}`, 'condition');
 
                         if (conditionMet) {
                             const quantity = parseFloat(row.querySelector('.qty-input').value);
@@ -1240,9 +1394,10 @@
         window.addEventListener('load', () => {
             const savedCreds = localStorage.getItem('ftCredentials');
             if (savedCreds) {
-                const { uid, jKey } = JSON.parse(savedCreds);
+                const { uid, jKey, telegramChatId } = JSON.parse(savedCreds);
                 document.getElementById('userId').value = uid;
                 document.getElementById('userToken').value = jKey;
+                document.getElementById('telegramChatId').value = telegramChatId;
             }
             selectExchange('NSE');
             startHistoricalDataRefresh();
