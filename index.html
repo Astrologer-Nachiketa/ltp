@@ -1074,6 +1074,8 @@
                             <option value="fixed" ${script.triggerValueSource === 'fixed' ? 'selected' : ''}>Fixed Value</option>
                             <option value="ema" ${script.triggerValueSource === 'ema' ? 'selected' : ''}>EMA (60)</option>
                             <option value="sma" ${script.triggerValueSource === 'sma' ? 'selected' : ''}>SMA (60)</option>
+                            <option value="hist_high" ${script.triggerValueSource === 'hist_high' ? 'selected' : ''}>Hist. High</option>
+                            <option value="hist_low" ${script.triggerValueSource === 'hist_low' ? 'selected' : ''}>Hist. Low</option>
                         </select>
                         <select class="trigger-type">
                             <option value="no_trigger" ${script.triggerType === 'no_trigger' ? 'selected' : ''}>No Trigger</option>
@@ -1150,6 +1152,20 @@
                             updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
                             return;
                         }
+                    } else if (triggerValueSource === 'hist_high') {
+                        const histHighValue = button.closest('tr').querySelector('.hist-high').innerText;
+                        triggerValue = parseFloat(histHighValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("Historical High value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
+                    } else if (triggerValueSource === 'hist_low') {
+                        const histLowValue = button.closest('tr').querySelector('.hist-low').innerText;
+                        triggerValue = parseFloat(histLowValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("Historical Low value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
                     }
 
                     // Start blinking effect
@@ -1170,13 +1186,19 @@
                         const ltpText = button.closest('tr').querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
                         const ltp = parseFloat(ltpText);
                         
-                        // Update the trigger value if using EMA or SMA
+                        // Update the trigger value if using EMA, SMA, or historical values
                         if (triggerValueSource === 'ema') {
                             const emaValue = button.closest('tr').querySelector('td:nth-child(11)').innerText;
                             triggerValue = parseFloat(emaValue);
                         } else if (triggerValueSource === 'sma') {
                             const smaValue = button.closest('tr').querySelector('td:nth-child(12)').innerText;
                             triggerValue = parseFloat(smaValue);
+                        } else if (triggerValueSource === 'hist_high') {
+                            const histHighValue = button.closest('tr').querySelector('.hist-high').innerText;
+                            triggerValue = parseFloat(histHighValue);
+                        } else if (triggerValueSource === 'hist_low') {
+                            const histLowValue = button.closest('tr').querySelector('.hist-low').innerText;
+                            triggerValue = parseFloat(histLowValue);
                         }
 
                         updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
@@ -1187,6 +1209,7 @@
                         }
 
                         let conditionMet = false;
+                        let orderPlaced = false;
                         switch (triggerType) {
                             case 'buy_above': conditionMet = ltp > triggerValue; break;
                             case 'buy_below': conditionMet = ltp < triggerValue; break;
@@ -1194,12 +1217,21 @@
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
                         }
 
-                        if (conditionMet) {
+                        if (conditionMet && !orderPlaced) {
+                            // Mark this trigger as having placed an order
+                            orderPlaced = true;
+                            
                             const quantity = parseFloat(button.closest('tr').querySelector('.qty-input').value);
-                            updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
-                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', button.closest('tr').querySelector('.subscribe-btn').getAttribute('data-script'), quantity.toString())
+                            const side = triggerType.includes('buy') ? 'B' : 'S';
+                            const scriptKey = button.closest('tr').querySelector('.subscribe-btn').getAttribute('data-script');
+                            
+                            // Play beep sound first - immediately
+                            playBeep();
+                            
+                            updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            
+                            placeOrder(side, scriptKey, quantity.toString())
                                 .then(() => {
-                                    playBeep(); // Play beep when trigger order is successful
                                     clearInterval(pollingInterval); // Stop checking after successful order
                                     armButton.classList.remove('active-trigger'); // Remove blinking effect
                                     button.closest('td').querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
@@ -1207,6 +1239,8 @@
                                 })
                                 .catch(error => {
                                     console.error('Order placement error:', error);
+                                    // Reset order placed flag if the order fails, allowing retries
+                                    orderPlaced = false;
                                 });
                         }
                     }, 1000); // Check every second
@@ -1338,6 +1372,20 @@
                             updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
                             return;
                         }
+                    } else if (triggerValueSource === 'hist_high') {
+                        const histHighValue = row.querySelector('.hist-high').innerText;
+                        triggerValue = parseFloat(histHighValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("Historical High value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
+                    } else if (triggerValueSource === 'hist_low') {
+                        const histLowValue = row.querySelector('.hist-low').innerText;
+                        triggerValue = parseFloat(histLowValue);
+                        if (isNaN(triggerValue)) {
+                            updateRealtimeStatus("Historical Low value is not available yet. Please wait or choose a different trigger source.", 'error');
+                            return;
+                        }
                     }
 
                     // Start blinking effect
@@ -1357,13 +1405,19 @@
                         const ltpText = row.querySelector('td:nth-child(3)').innerText.replace(/,/g, '');
                         const ltp = parseFloat(ltpText);
                         
-                        // Update the trigger value if using EMA or SMA
+                        // Update the trigger value if using EMA, SMA, or historical values
                         if (triggerValueSource === 'ema') {
                             const emaValue = row.querySelector('td:nth-child(11)').innerText;
                             triggerValue = parseFloat(emaValue);
                         } else if (triggerValueSource === 'sma') {
                             const smaValue = row.querySelector('td:nth-child(12)').innerText;
                             triggerValue = parseFloat(smaValue);
+                        } else if (triggerValueSource === 'hist_high') {
+                            const histHighValue = row.querySelector('.hist-high').innerText;
+                            triggerValue = parseFloat(histHighValue);
+                        } else if (triggerValueSource === 'hist_low') {
+                            const histLowValue = row.querySelector('.hist-low').innerText;
+                            triggerValue = parseFloat(histLowValue);
                         }
 
                         updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
@@ -1374,6 +1428,7 @@
                         }
 
                         let conditionMet = false;
+                        let orderPlaced = false;
                         switch (triggerType) {
                             case 'buy_above': conditionMet = ltp > triggerValue; break;
                             case 'buy_below': conditionMet = ltp < triggerValue; break;
@@ -1381,12 +1436,21 @@
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
                         }
 
-                        if (conditionMet) {
+                        if (conditionMet && !orderPlaced) {
+                            // Mark this trigger as having placed an order
+                            orderPlaced = true;
+                            
                             const quantity = parseFloat(row.querySelector('.qty-input').value);
-                            updateRealtimeStatus(`Placing order: ${triggerType.includes('buy') ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
-                            placeOrder(triggerType.includes('buy') ? 'B' : 'S', row.querySelector('.subscribe-btn').getAttribute('data-script'), quantity.toString())
+                            const side = triggerType.includes('buy') ? 'B' : 'S';
+                            const scriptKey = row.querySelector('.subscribe-btn').getAttribute('data-script');
+                            
+                            // Play beep sound first - immediately
+                            playBeep();
+                            
+                            updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            
+                            placeOrder(side, scriptKey, quantity.toString())
                                 .then(() => {
-                                    playBeep(); // Play beep when trigger order is successful
                                     clearInterval(pollingInterval); // Stop checking after successful order
                                     armButton.classList.remove('active-trigger'); // Remove blinking effect
                                     row.querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
@@ -1394,6 +1458,8 @@
                                 })
                                 .catch(error => {
                                     console.error('Order placement error:', error);
+                                    // Reset order placed flag if the order fails, allowing retries
+                                    orderPlaced = false;
                                 });
                         }
                     }, 1000); // Check every second
