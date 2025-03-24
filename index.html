@@ -1083,6 +1083,8 @@
                             <option value="buy_below" ${script.triggerType === 'buy_below' ? 'selected' : ''}>Buy Below</option>
                             <option value="sell_above" ${script.triggerType === 'sell_above' ? 'selected' : ''}>Sell Above</option>
                             <option value="sell_below" ${script.triggerType === 'sell_below' ? 'selected' : ''}>Sell Below</option>
+                            <option value="buy_green_ltp_lt_sma" ${script.triggerType === 'buy_green_ltp_lt_sma' ? 'selected' : ''}>Buy LTP>High&lt;SMA</option>
+                            <option value="buy_ltp_gt_ema_gt_sma" ${script.triggerType === 'buy_ltp_gt_ema_gt_sma' ? 'selected' : ''}>Buy LTP>EMA>SMA</option>
                         </select>
                         <button class="arm-trigger">Arm Trigger</button>
                     </td>
@@ -1129,42 +1131,47 @@
                         return;
                     }
                     
-                    // Determine the source of the trigger value
-                    if (triggerValueSource === 'fixed') {
-                        const triggerInputElement = button.closest('td').querySelector('.trigger-value');
-                        if (!triggerInputElement.value || isNaN(parseFloat(triggerInputElement.value))) {
-                            updateRealtimeStatus("Please enter a valid trigger value before arming.", 'error');
-                            triggerInputElement.focus();
-                            return;
-                        }
-                        triggerValue = parseFloat(triggerInputElement.value);
-                    } else if (triggerValueSource === 'ema') {
-                        const emaValue = button.closest('tr').querySelector('td:nth-child(11)').innerText;
-                        triggerValue = parseFloat(emaValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("EMA value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
-                        }
-                    } else if (triggerValueSource === 'sma') {
-                        const smaValue = button.closest('tr').querySelector('td:nth-child(12)').innerText;
-                        triggerValue = parseFloat(smaValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
-                        }
-                    } else if (triggerValueSource === 'hist_high') {
-                        const histHighValue = button.closest('tr').querySelector('.hist-high').innerText;
-                        triggerValue = parseFloat(histHighValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("Historical High value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
-                        }
-                    } else if (triggerValueSource === 'hist_low') {
-                        const histLowValue = button.closest('tr').querySelector('.hist-low').innerText;
-                        triggerValue = parseFloat(histLowValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("Historical Low value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
+                    // Check if this is one of our custom triggers that doesn't need a trigger value
+                    const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+                    
+                    // Determine the source of the trigger value (only for standard triggers)
+                    if (!isCustomTrigger) {
+                        if (triggerValueSource === 'fixed') {
+                            const triggerInputElement = button.closest('td').querySelector('.trigger-value');
+                            if (!triggerInputElement.value || isNaN(parseFloat(triggerInputElement.value))) {
+                                updateRealtimeStatus("Please enter a valid trigger value before arming.", 'error');
+                                triggerInputElement.focus();
+                                return;
+                            }
+                            triggerValue = parseFloat(triggerInputElement.value);
+                        } else if (triggerValueSource === 'ema') {
+                            const emaValue = button.closest('tr').querySelector('td:nth-child(11)').innerText;
+                            triggerValue = parseFloat(emaValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("EMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
+                        } else if (triggerValueSource === 'sma') {
+                            const smaValue = button.closest('tr').querySelector('td:nth-child(12)').innerText;
+                            triggerValue = parseFloat(smaValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
+                        } else if (triggerValueSource === 'hist_high') {
+                            const histHighValue = button.closest('tr').querySelector('.hist-high').innerText;
+                            triggerValue = parseFloat(histHighValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("Historical High value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
+                        } else if (triggerValueSource === 'hist_low') {
+                            const histLowValue = button.closest('tr').querySelector('.hist-low').innerText;
+                            triggerValue = parseFloat(histLowValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("Historical Low value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
                         }
                     }
 
@@ -1201,9 +1208,13 @@
                             triggerValue = parseFloat(histLowValue);
                         }
 
-                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
+                        if (isCustomTrigger) {
+                            updateRealtimeStatus(`Checking LTP: ${ltp}, Custom Trigger Type: ${triggerType}`, 'condition');
+                        } else {
+                            updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
+                        }
                         
-                        if (isNaN(triggerValue) || isNaN(ltp)) {
+                        if (!isCustomTrigger && (isNaN(triggerValue) || isNaN(ltp))) {
                             console.error("Invalid input: triggerValue or LTP is NaN");
                             return;
                         }
@@ -1215,11 +1226,28 @@
                             case 'buy_below': conditionMet = ltp < triggerValue; break;
                             case 'sell_above': conditionMet = ltp > triggerValue; break;
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
+                            case 'buy_green_ltp_lt_sma': 
+                                const smaVal = parseFloat(button.closest('tr').querySelector('td:nth-child(12)').innerText);
+                                const emaVal = parseFloat(button.closest('tr').querySelector('td:nth-child(11)').innerText);
+                                const histHighVal = parseFloat(button.closest('tr').querySelector('.hist-high').innerText);
+                                conditionMet = ltp > histHighVal && ltp < smaVal && emaVal > smaVal;
+                                break;
+                            case 'buy_ltp_gt_ema_gt_sma': 
+                                const emaValue = parseFloat(button.closest('tr').querySelector('td:nth-child(11)').innerText);
+                                const smaValue = parseFloat(button.closest('tr').querySelector('td:nth-child(12)').innerText);
+                                conditionMet = ltp > emaValue && emaValue > smaValue;
+                                break;
                         }
 
                         if (conditionMet && !orderPlaced) {
                             // Mark this trigger as having placed an order
                             orderPlaced = true;
+                            
+                            // Immediately stop the polling and disarm the trigger to prevent multiple orders
+                            clearInterval(pollingInterval);
+                            armButton.classList.remove('active-trigger');
+                            button.closest('td').querySelector('.trigger-type').value = 'no_trigger';
+                            isTriggerActive = false;
                             
                             const quantity = parseFloat(button.closest('tr').querySelector('.qty-input').value);
                             const side = triggerType.includes('buy') ? 'B' : 'S';
@@ -1228,19 +1256,20 @@
                             // Play beep sound first - immediately
                             playBeep();
                             
-                            updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            if (isCustomTrigger) {
+                                updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}, Custom Trigger Type: ${triggerType}`, 'order');
+                            } else {
+                                updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            }
                             
                             placeOrder(side, scriptKey, quantity.toString())
                                 .then(() => {
-                                    clearInterval(pollingInterval); // Stop checking after successful order
-                                    armButton.classList.remove('active-trigger'); // Remove blinking effect
-                                    button.closest('td').querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
-                                    isTriggerActive = false;
+                                    // Order placed successfully - we've already disarmed the trigger
+                                    updateRealtimeStatus(`Order placed successfully. Trigger disarmed.`, 'success');
                                 })
                                 .catch(error => {
                                     console.error('Order placement error:', error);
-                                    // Reset order placed flag if the order fails, allowing retries
-                                    orderPlaced = false;
+                                    updateRealtimeStatus(`Order failed: ${error}. Trigger has been disarmed.`, 'error');
                                 });
                         }
                     }, 1000); // Check every second
@@ -1385,42 +1414,47 @@
                         return;
                     }
                     
-                    // Determine the source of the trigger value
-                    if (triggerValueSource === 'fixed') {
-                        const triggerInputElement = row.querySelector('.trigger-value');
-                        if (!triggerInputElement.value || isNaN(parseFloat(triggerInputElement.value))) {
-                            updateRealtimeStatus("Please enter a valid trigger value before arming.", 'error');
-                            triggerInputElement.focus();
-                            return;
-                        }
-                        triggerValue = parseFloat(triggerInputElement.value);
-                    } else if (triggerValueSource === 'ema') {
-                        const emaValue = row.querySelector('td:nth-child(11)').innerText;
-                        triggerValue = parseFloat(emaValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("EMA value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
-                        }
-                    } else if (triggerValueSource === 'sma') {
-                        const smaValue = row.querySelector('td:nth-child(12)').innerText;
-                        triggerValue = parseFloat(smaValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
-                        }
-                    } else if (triggerValueSource === 'hist_high') {
-                        const histHighValue = row.querySelector('.hist-high').innerText;
-                        triggerValue = parseFloat(histHighValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("Historical High value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
-                        }
-                    } else if (triggerValueSource === 'hist_low') {
-                        const histLowValue = row.querySelector('.hist-low').innerText;
-                        triggerValue = parseFloat(histLowValue);
-                        if (isNaN(triggerValue)) {
-                            updateRealtimeStatus("Historical Low value is not available yet. Please wait or choose a different trigger source.", 'error');
-                            return;
+                    // Check if this is one of our custom triggers that doesn't need a trigger value
+                    const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+                    
+                    // Determine the source of the trigger value (only for standard triggers)
+                    if (!isCustomTrigger) {
+                        if (triggerValueSource === 'fixed') {
+                            const triggerInputElement = row.querySelector('.trigger-value');
+                            if (!triggerInputElement.value || isNaN(parseFloat(triggerInputElement.value))) {
+                                updateRealtimeStatus("Please enter a valid trigger value before arming.", 'error');
+                                triggerInputElement.focus();
+                                return;
+                            }
+                            triggerValue = parseFloat(triggerInputElement.value);
+                        } else if (triggerValueSource === 'ema') {
+                            const emaValue = row.querySelector('td:nth-child(11)').innerText;
+                            triggerValue = parseFloat(emaValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("EMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
+                        } else if (triggerValueSource === 'sma') {
+                            const smaValue = row.querySelector('td:nth-child(12)').innerText;
+                            triggerValue = parseFloat(smaValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("SMA value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
+                        } else if (triggerValueSource === 'hist_high') {
+                            const histHighValue = row.querySelector('.hist-high').innerText;
+                            triggerValue = parseFloat(histHighValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("Historical High value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
+                        } else if (triggerValueSource === 'hist_low') {
+                            const histLowValue = row.querySelector('.hist-low').innerText;
+                            triggerValue = parseFloat(histLowValue);
+                            if (isNaN(triggerValue)) {
+                                updateRealtimeStatus("Historical Low value is not available yet. Please wait or choose a different trigger source.", 'error');
+                                return;
+                            }
                         }
                     }
 
@@ -1456,9 +1490,13 @@
                             triggerValue = parseFloat(histLowValue);
                         }
 
-                        updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
+                        if (isCustomTrigger) {
+                            updateRealtimeStatus(`Checking LTP: ${ltp}, Custom Trigger Type: ${triggerType}`, 'condition');
+                        } else {
+                            updateRealtimeStatus(`Checking LTP: ${ltp}, Trigger Value: ${triggerValue} (${triggerValueSource.toUpperCase()}), Trigger Type: ${triggerType}`, 'condition');
+                        }
                         
-                        if (isNaN(triggerValue) || isNaN(ltp)) {
+                        if (!isCustomTrigger && (isNaN(triggerValue) || isNaN(ltp))) {
                             console.error("Invalid input: triggerValue or LTP is NaN");
                             return;
                         }
@@ -1470,11 +1508,28 @@
                             case 'buy_below': conditionMet = ltp < triggerValue; break;
                             case 'sell_above': conditionMet = ltp > triggerValue; break;
                             case 'sell_below': conditionMet = ltp < triggerValue; break;
+                            case 'buy_green_ltp_lt_sma': 
+                                const smaVal = parseFloat(row.querySelector('td:nth-child(12)').innerText);
+                                const emaVal = parseFloat(row.querySelector('td:nth-child(11)').innerText);
+                                const histHighVal = parseFloat(row.querySelector('.hist-high').innerText);
+                                conditionMet = ltp > histHighVal && ltp < smaVal && emaVal > smaVal;
+                                break;
+                            case 'buy_ltp_gt_ema_gt_sma': 
+                                const emaValue = parseFloat(row.querySelector('td:nth-child(11)').innerText);
+                                const smaValue = parseFloat(row.querySelector('td:nth-child(12)').innerText);
+                                conditionMet = ltp > emaValue && emaValue > smaValue;
+                                break;
                         }
 
                         if (conditionMet && !orderPlaced) {
                             // Mark this trigger as having placed an order
                             orderPlaced = true;
+                            
+                            // Immediately stop the polling and disarm the trigger to prevent multiple orders
+                            clearInterval(pollingInterval);
+                            armButton.classList.remove('active-trigger');
+                            row.querySelector('.trigger-type').value = 'no_trigger';
+                            isTriggerActive = false;
                             
                             const quantity = parseFloat(row.querySelector('.qty-input').value);
                             const side = triggerType.includes('buy') ? 'B' : 'S';
@@ -1483,19 +1538,20 @@
                             // Play beep sound first - immediately
                             playBeep();
                             
-                            updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            if (isCustomTrigger) {
+                                updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}, Custom Trigger Type: ${triggerType}`, 'order');
+                            } else {
+                                updateRealtimeStatus(`Placing order: ${side === 'B' ? 'Buy' : 'Sell'}, Quantity: ${quantity}`, 'order');
+                            }
                             
                             placeOrder(side, scriptKey, quantity.toString())
                                 .then(() => {
-                                    clearInterval(pollingInterval); // Stop checking after successful order
-                                    armButton.classList.remove('active-trigger'); // Remove blinking effect
-                                    row.querySelector('.trigger-type').value = 'no_trigger'; // Reset trigger
-                                    isTriggerActive = false;
+                                    // Order placed successfully - we've already disarmed the trigger
+                                    updateRealtimeStatus(`Order placed successfully. Trigger disarmed.`, 'success');
                                 })
                                 .catch(error => {
                                     console.error('Order placement error:', error);
-                                    // Reset order placed flag if the order fails, allowing retries
-                                    orderPlaced = false;
+                                    updateRealtimeStatus(`Order failed: ${error}. Trigger has been disarmed.`, 'error');
                                 });
                         }
                     }, 1000); // Check every second
