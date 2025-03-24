@@ -1296,6 +1296,7 @@
             if (script.sma !== '-' && script.ema !== '-') {
                 const sma = parseFloat(script.sma);
                 const ema = parseFloat(script.ema);
+                const ltp = parseFloat(script.data.lp || '0');
                 
                 // Remove any existing row blinking classes
                 row.classList.remove('blink-green', 'blink-red');
@@ -1313,6 +1314,41 @@
                     emaCell.classList.add('text-success'); // EMA is higher - green
                 }
                 // If they're equal, neither gets a color
+                
+                // Add arrows for EMA comparison with LTP
+                if (!isNaN(ltp) && ltp > 0) {
+                    // EMA vs LTP
+                    if (ema > ltp) {
+                        emaCell.innerHTML = `${emaCell.innerText} ↑`;
+                    } else if (ema < ltp) {
+                        emaCell.innerHTML = `${emaCell.innerText} ↓`;
+                    }
+                    
+                    // SMA vs LTP
+                    if (sma > ltp) {
+                        smaCell.innerHTML = `${smaCell.innerText} ↑`;
+                    } else if (sma < ltp) {
+                        smaCell.innerHTML = `${smaCell.innerText} ↓`;
+                    }
+                    
+                    // Add trading signals based on conditions next to LTP
+                    let signalHTML = '';
+                    
+                    // Condition 1: LTP > EMA > SMA → Show "S" (Sell signal)
+                    if (ltp > ema && ema > sma) {
+                        signalHTML = ' <span class="text-danger">S</span>';
+                    }
+                    
+                    // Condition 2: LTP < SMA and EMA > SMA → Show "B" (Buy signal)
+                    if (ltp < sma && ema > sma) {
+                        signalHTML = ' <span class="text-success">B</span>';
+                    }
+                    
+                    // Add the signal to the LTP cell
+                    if (signalHTML) {
+                        ltpCell.innerHTML = `${ltpCell.innerText}${signalHTML}`;
+                    }
+                }
             }
 
             row.querySelector('.qty-input').value = row.querySelector('.qty-input').value || '75';
