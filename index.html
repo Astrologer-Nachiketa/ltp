@@ -401,10 +401,77 @@
             min-height: 24px;
             overflow: visible;
         }
+        /* Shark Animation */
+.shark-container {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 105px; /* 25% reduced size */
+    height: 112px;
+    z-index: 1000;
+    pointer-events: none;
+    text-align: center;
+}
+
+.shark-image {
+    width: 100%;
+    height: auto;
+    animation: sharkHover 3s ease-in-out infinite;
+    transform-style: preserve-3d;
+}
+
+/* Multicolor Animated Text */
+.shark-text {
+    font-size: 10px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+    background-image: linear-gradient(45deg, #ff0000, #ff7300, #ffeb00, #47ff00, #00ffcc, #007bff, #d400ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: block;
+    margin-top: -8px;
+    animation: textColorShift 3s infinite linear;
+    background-size: 300% 300%;
+}
+
+/* Keyframes for changing colors dynamically */
+@keyframes textColorShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Shark Hover Animation */
+@keyframes sharkHover {
+    0%, 100% { 
+        transform: translateY(0) translateX(0) rotateY(0deg) scale(1);
+        opacity: 1;
+    }
+    25% { 
+        transform: translateY(-6px) translateX(7px) rotateY(8deg) scale(1.05);
+        opacity: 0.9;
+    }
+    50% { 
+        transform: translateY(-12px) translateX(0) rotateY(16deg) scale(1.08);
+        opacity: 1;
+    }
+    75% { 
+        transform: translateY(-6px) translateX(-7px) rotateY(8deg) scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+
         
     </style>
 </head>
 <body>
+    <!-- Shark Animation -->
+    <div class="shark-container">
+        <img src="—Pngtree—shark icon 3d_17408662.png" alt="Shark" class="shark-image">
+        <div class="shark-text">Shark Scalper™</div>
+    </div>
     <!-- Credentials Section -->
     <div class="cred-box">
         <input type="text" id="userId" class="cred-input" placeholder="User ID">
