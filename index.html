@@ -378,51 +378,8 @@
         .text-danger {
             color: #dc3545;
         }
-
-        .arrow-indicator {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 12px;
-    line-height: 1;
-    white-space: nowrap;
-    margin-top: 2px; /* Small gap between value and arrow */
-}
-
-/* Prevent any shifts during updates */
-.trigger-cell {
-    min-height: 24px; /* Ensure consistent cell height */
-    overflow: visible;
-}
-</style>
-Let me know if you'd like further adjustments!
-
-DoneFeedback has been submitted
-Me
-
-where to edit in file
-
-The CSS changes should be added to the <style> section in the <head> of index.html. Here's the exact location:
-
-html
-CopyInsert
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Data</title>
-    <style>
-        /* Existing CSS rules */
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 5px;
-            background: #f0f2f5;
-            color: #333;
-            margin: 0;
-        }
-
-        /* Add the new CSS rules here */
-        .trigger-value {
+         /* Add the new CSS rules here */
+         .trigger-value {
             position: relative;
             display: inline-block;
             vertical-align: baseline;
@@ -444,6 +401,7 @@ CopyInsert
             min-height: 24px;
             overflow: visible;
         }
+        
     </style>
 </head>
 <body>
