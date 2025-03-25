@@ -8,15 +8,15 @@
         /* General Styles */
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 15px;
+            padding: 5px;
             background: #f0f2f5;
             color: #333;
             margin: 0;
         }
 
         h3 {
-            margin-top: 20px;
-            margin-bottom: 10px;
+            margin-top: 5px;
+            margin-bottom: 5px;
         }
 
         /* Credentials Box */
@@ -117,18 +117,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 5px;
             background: white;
-            border-radius: 8px;
+            border-radius: 4px;
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
         }
 
         th, td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e9ecef;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         th {
@@ -146,8 +147,8 @@
 
         /* Order Status */
         .order-status {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 5px;
+            padding: 4px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -155,21 +156,21 @@
 
         .success {
             color: #28a745;
-            padding: 10px;
+            padding: 5px;
             background: #f8fff8;
             border: 1px solid #28a745;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-size: 14px;
         }
 
         .error {
             color: #dc3545;
-            padding: 10px;
+            padding: 5px;
             background: #fff8f8;
             border: 1px solid #dc3545;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-size: 14px;
         }
 
@@ -270,15 +271,15 @@
         /* Real-time Status Styles */
         .market-container {
             display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 5px;
+            margin-bottom: 4px;
         }
         .market-table { flex: 2; }
         .status-panel {
             flex: 1;
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 5px;
+            border-radius: 4px;
             min-width: 300px;
         }
         .status-content {
@@ -325,17 +326,17 @@
 
         /* Order Book Styles */
         .order-book {
-            margin-top: 20px;
+            margin-top: 2px;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 5px;
+            border-radius: 3px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .refresh-btn {
             background: #6c757d;
             color: white;
-            margin-bottom: 10px;
+            margin-bottom: 1px;
         }
 
         .order-table th {
@@ -377,6 +378,72 @@
         .text-danger {
             color: #dc3545;
         }
+
+        .arrow-indicator {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+    margin-top: 2px; /* Small gap between value and arrow */
+}
+
+/* Prevent any shifts during updates */
+.trigger-cell {
+    min-height: 24px; /* Ensure consistent cell height */
+    overflow: visible;
+}
+</style>
+Let me know if you'd like further adjustments!
+
+DoneFeedback has been submitted
+Me
+
+where to edit in file
+
+The CSS changes should be added to the <style> section in the <head> of index.html. Here's the exact location:
+
+html
+CopyInsert
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Data</title>
+    <style>
+        /* Existing CSS rules */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 5px;
+            background: #f0f2f5;
+            color: #333;
+            margin: 0;
+        }
+
+        /* Add the new CSS rules here */
+        .trigger-value {
+            position: relative;
+            display: inline-block;
+            vertical-align: baseline;
+            line-height: 1.2;
+        }
+
+        .arrow-indicator {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            line-height: 1;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .trigger-cell {
+            min-height: 24px;
+            overflow: visible;
+        }
     </style>
 </head>
 <body>
@@ -406,6 +473,7 @@
             <button class="exchange-btn" onclick="selectExchange('NSE')">NSE</button>
             <button class="exchange-btn" onclick="selectExchange('NFO')">NFO</button>
             <button class="exchange-btn" onclick="selectExchange('MCX')">MCX</button>
+            <input type="number" id="globalQty" placeholder="Global Quantity" style="margin-left: 10px; padding: 4px;" onchange="updateGlobalQty()" />
         </div>
 
         <div style="margin-top: 10px;">
@@ -1780,6 +1848,15 @@
             originalDisconnectWS();
             // Don't release wake lock on disconnect to keep app running in background
         };
+        
+        function updateGlobalQty() {
+            const globalQty = parseInt(document.getElementById('globalQty').value);
+            if (!isNaN(globalQty)) {
+                document.querySelectorAll('.qty-input').forEach(input => {
+                    input.value = globalQty;
+                });
+            }
+        }
     </script>
 </body>
 </html>
