@@ -597,11 +597,12 @@
 
         .status-bar {
             display: flex;
-            gap: 30px;
+            gap: 20px;  /* Reduced from 30px to fit new element */
             padding: 15px;
             background: white;
             border-radius: 8px;
             margin-bottom: 20px;
+            align-items: center;
         }
 
         .order-details-grid {
@@ -630,6 +631,34 @@
             margin-top: 20px;
             font-family: monospace;
             font-size: 12px;
+        }
+
+        /* Add this to your existing styles */
+        #activeTriggerStatus {
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .stop-trigger-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .stop-trigger-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .stop-trigger-btn:not(:disabled):hover {
+            background-color: #c82333;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -752,6 +781,8 @@
                 <div>📊 LTP: <span id="currentPrice">-</span></div>
                 <div>💰 P&L: <span id="totalPnl">0.00</span></div>
                 <div>📌 Active: <span id="activeCount">0</span></div>
+                <div>🎯 Active Trigger: <span id="activeTriggerStatus">None</span></div>
+                <button id="stopTriggerBtn" class="stop-trigger-btn" onclick="OrderSystem.stopAllTriggers()" disabled>🛑 Stop Trigger</button>
             </div>
 
             <div class="algo-section">
@@ -806,6 +837,36 @@
                     <label class="algo-label">Trailing SL</label>
                     <input type="checkbox" id="trailingSL">
                 </div>
+
+                <div class="input-group">
+                    <label class="algo-label">Trigger Type</label>
+                    <select id="algoTriggerType" class="algo-select">
+                        <option value="no_trigger">No Trigger</option>
+                        <option value="buy_above">Buy Above</option>
+                        <option value="buy_below">Buy Below</option>
+                        <option value="sell_above">Sell Above</option>
+                        <option value="sell_below">Sell Below</option>
+                        <option value="buy_green_ltp_lt_sma">Buy LTP>High<SMA</option>
+                        <option value="buy_ltp_gt_ema_gt_sma">Buy LTP>EMA>SMA</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="algo-label">Trigger Source</label>
+                    <select id="algoTriggerValueSource" class="algo-select">
+                        <option value="fixed">Fixed Value</option>
+                        <option value="ema">EMA (60)</option>
+                        <option value="sma">SMA (60)</option>
+                        <option value="hist_high">Hist. High</option>
+                        <option value="hist_low">Hist. Low</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="algo-label">Trigger Value</label>
+                    <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
+                </div>
+
                 <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
             </div>
 
@@ -884,6 +945,10 @@
         
         // Keep track of the Wake Lock reference
         let wakeLock = null;
+
+        // Add these variables at the top with your other global variables
+        let activeCheckIntervals = new Map(); // Store all active intervals
+        let isStoppingTriggers = false; // Flag to prevent new triggers while stopping
 
         function startHistoricalDataRefresh() {
             historicalDataInterval = setInterval(refreshHistoricalData, 10000);
@@ -2331,8 +2396,23 @@
                                 target: document.querySelector('input[name="targetType"]:checked').value === 'percent',
                                 sl: document.querySelector('input[name="slType"]:checked').value === 'percent'
                             },
-                            trailing: document.getElementById("trailingSL").checked
+                            trailing: document.getElementById("trailingSL").checked,
+                            // Add new trigger-related parameters
+                            triggerType: document.getElementById("algoTriggerType").value,
+                            triggerValue: parseFloat(document.getElementById("algoTriggerValue").value),
+                            triggerValueSource: document.getElementById("algoTriggerValueSource").value
                         };
+
+                        // Check if trigger conditions are set
+                        if (params.triggerType !== 'no_trigger') {
+                            // Validate trigger value based on source
+                            if (params.triggerValueSource === 'fixed' && (!params.triggerValue || isNaN(params.triggerValue))) {
+                                throw new Error("Please enter a valid trigger value");
+                            }
+
+                            // Wait for trigger conditions before placing order
+                            await this.waitForTriggerCondition(params);
+                        }
                         
                         const order = await this.placeExternalOrder(params);
                         debugLog(`Order placed successfully: #${order.id}`, 'success');
@@ -2340,6 +2420,164 @@
                         debugLog(`Order placement failed: ${error.message}`, 'error');
                         alert("Order placement failed: " + error.message);
                     }
+                },
+
+                // Add new method to wait for trigger conditions
+                async waitForTriggerCondition(params) {
+                    return new Promise((resolve, reject) => {
+                        const [tsym, exch] = params.symbol.split('|');
+                        let scriptKey = null;
+                        
+                        // Check if we're in stopping state
+                        if (isStoppingTriggers) {
+                            debugLog(`Cannot start new trigger while stopping others`, 'error');
+                            reject(new Error("Trigger system is stopping"));
+                            return;
+                        }
+
+                        // Initial debug log
+                        debugLog(`Starting algo trigger monitor for ${tsym}`, 'info');
+                        debugLog(`Trigger type: ${params.triggerType}`, 'info');
+                        debugLog(`Trigger source: ${params.triggerValueSource}`, 'info');
+                        
+                        // Update active trigger status display
+                        const activeTriggerStatus = document.getElementById('activeTriggerStatus');
+                        activeTriggerStatus.innerHTML = `${tsym} (${params.triggerType})`;
+                        activeTriggerStatus.style.color = '#007bff';
+                        
+                        // Enable stop button
+                        const stopButton = document.getElementById('stopTriggerBtn');
+                        stopButton.disabled = false;
+                        
+                        // Find the correct script key
+                        for (const [key, value] of subscribedScripts.entries()) {
+                            if (value.tsym === tsym && value.exch === exch) {
+                                scriptKey = key;
+                                break;
+                            }
+                        }
+
+                        if (!scriptKey) {
+                            debugLog(`Symbol ${tsym} not found in subscribed scripts`, 'error');
+                            activeTriggerStatus.innerHTML = 'None';
+                            activeTriggerStatus.style.color = '';
+                            stopButton.disabled = true;
+                            reject(new Error("Symbol not found"));
+                            return;
+                        }
+
+                        const checkInterval = setInterval(() => {
+                            const script = subscribedScripts.get(scriptKey);
+                            if (!script) {
+                                clearInterval(checkInterval);
+                                debugLog(`Script ${tsym} no longer available`, 'error');
+                                activeTriggerStatus.innerHTML = 'None';
+                                activeTriggerStatus.style.color = '';
+                                stopButton.disabled = true;
+                                reject(new Error("Script not found"));
+                                return;
+                            }
+
+                            const ltp = parseFloat(script.data.lp);
+                            let triggerValue = params.triggerValue;
+
+                            // Update trigger value based on source
+                            if (params.triggerValueSource === 'ema') {
+                                triggerValue = parseFloat(script.ema);
+                            } else if (params.triggerValueSource === 'sma') {
+                                triggerValue = parseFloat(script.sma);
+                            } else if (params.triggerValueSource === 'hist_high') {
+                                triggerValue = parseFloat(script.historicalHigh);
+                            } else if (params.triggerValueSource === 'hist_low') {
+                                triggerValue = parseFloat(script.historicalLow);
+                            }
+
+                            let conditionMet = false;
+                            const isCustomTrigger = params.triggerType === 'buy_green_ltp_lt_sma' || 
+                                                  params.triggerType === 'buy_ltp_gt_ema_gt_sma';
+
+                            // Prepare status message
+                            let statusMsg = `${tsym} - LTP: ${ltp}`;
+                            let triggerStatusMsg = '';
+
+                            if (!isCustomTrigger) {
+                                statusMsg += `, Trigger: ${triggerValue} (${params.triggerValueSource})`;
+                                triggerStatusMsg = `${tsym} [${ltp} vs ${triggerValue}]`;
+                                
+                                switch (params.triggerType) {
+                                    case 'buy_above': 
+                                        conditionMet = ltp > triggerValue;
+                                        statusMsg += ` | Waiting for LTP > ${triggerValue}`;
+                                        break;
+                                    case 'buy_below': 
+                                        conditionMet = ltp < triggerValue;
+                                        statusMsg += ` | Waiting for LTP < ${triggerValue}`;
+                                        break;
+                                    case 'sell_above': 
+                                        conditionMet = ltp > triggerValue;
+                                        statusMsg += ` | Waiting for LTP > ${triggerValue}`;
+                                        break;
+                                    case 'sell_below': 
+                                        conditionMet = ltp < triggerValue;
+                                        statusMsg += ` | Waiting for LTP < ${triggerValue}`;
+                                        break;
+                                }
+                            } else {
+                                const sma = parseFloat(script.sma);
+                                const ema = parseFloat(script.ema);
+                                const histHigh = parseFloat(script.historicalHigh);
+
+                                statusMsg += `, SMA: ${sma}, EMA: ${ema}, High: ${histHigh}`;
+                                triggerStatusMsg = `${tsym} [Custom ${params.triggerType}]`;
+
+                                if (params.triggerType === 'buy_green_ltp_lt_sma') {
+                                    conditionMet = ltp > histHigh && ltp < sma && ema > sma;
+                                    statusMsg += ` | Waiting for LTP(${ltp}) > High(${histHigh}) && < SMA(${sma}) && EMA(${ema}) > SMA(${sma})`;
+                                } else if (params.triggerType === 'buy_ltp_gt_ema_gt_sma') {
+                                    conditionMet = ltp > ema && ema > sma;
+                                    statusMsg += ` | Waiting for LTP(${ltp}) > EMA(${ema}) > SMA(${sma})`;
+                                }
+                            }
+
+                            // Update active trigger status
+                            activeTriggerStatus.innerHTML = triggerStatusMsg;
+
+                            // Log status every 5 seconds (to avoid console spam)
+                            const currentTime = Date.now();
+                            if (!this.lastStatusLog || currentTime - this.lastStatusLog >= 5000) {
+                                debugLog(statusMsg, 'info');
+                                this.lastStatusLog = currentTime;
+                            }
+
+                            if (conditionMet) {
+                                clearInterval(checkInterval);
+                                activeCheckIntervals.delete(tsym);
+                                debugLog(`🎯 Trigger conditions met for ${tsym}! Proceeding with order placement...`, 'success');
+                                activeTriggerStatus.innerHTML = 'None';
+                                activeTriggerStatus.style.color = '';
+                                if (activeCheckIntervals.size === 0) {
+                                    stopButton.disabled = true;
+                                }
+                                resolve();
+                            }
+                        }, 1000);
+                        
+                        // Store the interval
+                        activeCheckIntervals.set(tsym, checkInterval);
+
+                        // Modify timeout to clean up properly
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            activeCheckIntervals.delete(tsym);
+                            debugLog(`⚠️ Trigger monitor timed out for ${tsym}`, 'error');
+                            activeTriggerStatus.innerHTML = 'None';
+                            activeTriggerStatus.style.color = '';
+                            if (activeCheckIntervals.size === 0) {
+                                stopButton.disabled = true;
+                            }
+                            reject(new Error("Trigger condition timeout"));
+                        }, 5 * 60 * 1000);
+                    });
                 },
 
                 async handleModifyOrder() {
@@ -2472,7 +2710,33 @@
                     return orders.some(o => o.brokerId === orderId);
                 },
 
-                updateDisplay
+                updateDisplay,
+
+                stopAllTriggers() {
+                    isStoppingTriggers = true;
+                    debugLog('🛑 Stopping all active triggers...', 'warn');
+                    
+                    // Clear all check intervals
+                    activeCheckIntervals.forEach((interval, key) => {
+                        clearInterval(interval);
+                        debugLog(`Stopped trigger for ${key}`, 'info');
+                    });
+                    
+                    // Reset all states
+                    activeCheckIntervals.clear();
+                    
+                    // Reset UI elements
+                    const activeTriggerStatus = document.getElementById('activeTriggerStatus');
+                    activeTriggerStatus.innerHTML = 'None';
+                    activeTriggerStatus.style.color = '';
+                    
+                    // Disable stop button
+                    const stopButton = document.getElementById('stopTriggerBtn');
+                    stopButton.disabled = true;
+                    
+                    isStoppingTriggers = false;
+                    debugLog('✅ All triggers stopped successfully', 'success');
+                }
             };
         })();
 
