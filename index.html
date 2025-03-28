@@ -1235,6 +1235,31 @@
 
             const script = subscribedScripts.get(scriptKey);
             const ltp = parseFloat(data.lp);
+            const histHigh = parseFloat(script.historicalHigh);
+            const histLow = parseFloat(script.historicalLow);
+
+            // Update LTP history for moving averages
+            if (!isNaN(ltp)) {
+                if (!script.ltpHistory) script.ltpHistory = [];
+                script.ltpHistory.push(ltp);
+                if (script.ltpHistory.length > MA_PERIOD) {
+                    script.ltpHistory.shift(); // Remove oldest value
+                }
+
+                // Calculate SMA when we have enough data points
+                if (script.ltpHistory.length === MA_PERIOD) {
+                    script.sma = calculateSMA(script.ltpHistory).toFixed(2);
+                    
+                    // Initialize EMA with SMA when we first get enough data points
+                    if (!script.ema || script.ema === '-' || isNaN(parseFloat(script.ema))) {
+                        script.ema = script.sma;
+                    } else {
+                        // Calculate EMA using previous EMA value
+                        const prevEma = parseFloat(script.ema);
+                        script.ema = ((ltp - prevEma) * EMA_WEIGHT + prevEma).toFixed(2);
+                    }
+                }
+            }
 
             // Update script data
             script.data = {
@@ -1242,25 +1267,21 @@
                 pc: data.pc ? `${parseFloat(data.pc).toFixed(2)}%` : script.data?.pc || '-',
                 h: data.h ? parseFloat(data.h).toFixed(script.pp) : script.data?.h || '-',
                 l: data.l ? parseFloat(data.l).toFixed(script.pp) : script.data?.l || '-',
-                v: data.v || script.data?.v || '-'
+                v: data.v || script.data?.v || '-',
+                ltpClass: !isNaN(ltp) && !isNaN(histHigh) && !isNaN(histLow) ? 
+                    (ltp >= histHigh ? 'blink-green' : 
+                     ltp <= histLow ? 'blink-red' : '') : ''
             };
 
             // Update table row
             updateTableRow(scriptKey);
             
-            // Update Algo Trading positions with current price
-            // Create both symbol formats for matching
+            // Rest of the existing updateMarketData code...
             const tsymFormat = `${script.tsym}|${script.exch}`;
             
-            // Log the update for debugging
-            console.log(`Market data update - ScriptKey: ${scriptKey}, LTP: ${ltp}, Symbol: ${script.tsym}`);
-            
             if (!isNaN(ltp)) {
-                // Update both symbol formats in market data
                 OrderSystem.updateMarketPrice(scriptKey, ltp);
                 OrderSystem.updateMarketPrice(tsymFormat, ltp);
-                
-                // Force a display update
                 OrderSystem.updateDisplay();
             }
         }
@@ -1695,10 +1716,17 @@
             const row = document.getElementById(`row-${scriptKey}`);
             if (!row) return;
 
-            // Update all necessary cells including historical high/low
             const ltpCell = row.querySelector('td:nth-child(3)');
+            
+            // Remove existing blink classes
+            ltpCell.classList.remove('blink-green', 'blink-red');
+            
+            // Add new class if exists
+            if (script.data.ltpClass) {
+                ltpCell.classList.add(script.data.ltpClass);
+            }
+            
             ltpCell.innerText = script.data.lp || '-';
-            ltpCell.className = script.data.ltpClass || '';
 
             const histHighCell = row.querySelector('.hist-high');
             if (histHighCell) {
