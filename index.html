@@ -660,6 +660,17 @@
             background-color: #c82333;
             transform: scale(1.05);
         }
+
+        #triggerTimeout {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #triggerTimeout::-webkit-inner-spin-button {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -781,6 +792,7 @@
                 <div>📊 LTP: <span id="currentPrice">-</span></div>
                 <div>💰 P&L: <span id="totalPnl">0.00</span></div>
                 <div>📌 Active: <span id="activeCount">0</span></div>
+                <div>⏱️ Timeout (min): <input type="number" id="triggerTimeout" min="1" value="5" style="width: 60px; padding: 2px 4px; margin: 0 4px;"></div>
                 <div>🎯 Active Trigger: <span id="activeTriggerStatus">None</span></div>
                 <button id="stopTriggerBtn" class="stop-trigger-btn" onclick="OrderSystem.stopAllTriggers()" disabled>🛑 Stop Trigger</button>
             </div>
@@ -2466,6 +2478,10 @@
                             return;
                         }
 
+                        // Get user-defined timeout value (default to 5 if invalid)
+                        const timeoutInput = document.getElementById('triggerTimeout');
+                        const timeoutMinutes = Math.max(1, parseInt(timeoutInput.value) || 5);
+                        
                         const checkInterval = setInterval(() => {
                             const script = subscribedScripts.get(scriptKey);
                             if (!script) {
@@ -2565,18 +2581,23 @@
                         // Store the interval
                         activeCheckIntervals.set(tsym, checkInterval);
 
-                        // Modify timeout to clean up properly
+                        // Use user-defined timeout
                         setTimeout(() => {
                             clearInterval(checkInterval);
                             activeCheckIntervals.delete(tsym);
-                            debugLog(`⚠️ Trigger monitor timed out for ${tsym}`, 'error');
+                            
+                            debugLog(`⚠️ Trigger monitor timed out after ${timeoutMinutes} minutes for ${tsym}`, 'error');
+                            const activeTriggerStatus = document.getElementById('activeTriggerStatus');
                             activeTriggerStatus.innerHTML = 'None';
                             activeTriggerStatus.style.color = '';
+                            
                             if (activeCheckIntervals.size === 0) {
+                                const stopButton = document.getElementById('stopTriggerBtn');
                                 stopButton.disabled = true;
                             }
-                            reject(new Error("Trigger condition timeout"));
-                        }, 5 * 60 * 1000);
+                            
+                            reject(new Error(`Trigger condition timeout after ${timeoutMinutes} minutes`));
+                        }, timeoutMinutes * 60 * 1000);  // Convert minutes to milliseconds
                     });
                 },
 
