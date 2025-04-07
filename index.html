@@ -879,6 +879,38 @@
                     <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
                 </div>
 
+                <!-- Add Second Trigger Set -->
+                <h4 style="margin-top: 20px; margin-bottom: 0; border-top: 1px solid #eee; padding-top: 15px;">AND Second Trigger Condition (Optional)</h4>
+                <div class="input-group">
+                    <label class="algo-label">Trigger 2 Type</label>
+                    <select id="algoTriggerType2" class="algo-select">
+                        <option value="no_trigger">No Trigger</option>
+                        <option value="buy_above">Buy Above</option>
+                        <option value="buy_below">Buy Below</option>
+                        <option value="sell_above">Sell Above</option>
+                        <option value="sell_below">Sell Below</option>
+                        <option value="buy_green_ltp_lt_sma">Buy LTP>High<SMA</option>
+                        <option value="buy_ltp_gt_ema_gt_sma">Buy LTP>EMA>SMA</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="algo-label">Trigger 2 Source</label>
+                    <select id="algoTriggerValueSource2" class="algo-select">
+                        <option value="fixed">Fixed Value</option>
+                        <option value="ema">EMA (60)</option>
+                        <option value="sma">SMA (60)</option>
+                        <option value="hist_high">Hist. High</option>
+                        <option value="hist_low">Hist. Low</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="algo-label">Trigger 2 Value</label>
+                    <input type="number" id="algoTriggerValue2" class="algo-input" step="0.01" placeholder="Enter trigger 2 value">
+                </div>
+                <!-- End Second Trigger Set -->
+
                 <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
             </div>
 
@@ -2412,14 +2444,22 @@
                             // Add new trigger-related parameters
                             triggerType: document.getElementById("algoTriggerType").value,
                             triggerValue: parseFloat(document.getElementById("algoTriggerValue").value),
-                            triggerValueSource: document.getElementById("algoTriggerValueSource").value
+                            triggerValueSource: document.getElementById("algoTriggerValueSource").value,
+                            // Add second trigger parameters
+                            triggerType2: document.getElementById("algoTriggerType2").value,
+                            triggerValue2: parseFloat(document.getElementById("algoTriggerValue2").value),
+                            triggerValueSource2: document.getElementById("algoTriggerValueSource2").value
                         };
 
                         // Check if trigger conditions are set
                         if (params.triggerType !== 'no_trigger') {
                             // Validate trigger value based on source
                             if (params.triggerValueSource === 'fixed' && (!params.triggerValue || isNaN(params.triggerValue))) {
-                                throw new Error("Please enter a valid trigger value");
+                                throw new Error("Please enter a valid trigger 1 value");
+                            }
+                            // Validate second trigger if active
+                            if (params.triggerType2 !== 'no_trigger' && params.triggerValueSource2 === 'fixed' && (!params.triggerValue2 || isNaN(params.triggerValue2))) {
+                                throw new Error("Please enter a valid trigger 2 value");
                             }
 
                             // Wait for trigger conditions before placing order
@@ -2448,13 +2488,24 @@
                         }
 
                         // Initial debug log
+                        let triggerDesc = `Trigger 1: ${params.triggerType}`; 
+                        if (params.triggerType2 !== 'no_trigger') {
+                            triggerDesc += ` AND Trigger 2: ${params.triggerType2}`;
+                        }
                         debugLog(`Starting algo trigger monitor for ${tsym}`, 'info');
-                        debugLog(`Trigger type: ${params.triggerType}`, 'info');
-                        debugLog(`Trigger source: ${params.triggerValueSource}`, 'info');
+                        debugLog(triggerDesc, 'info');
+                        debugLog(`Trigger 1 source: ${params.triggerValueSource}`, 'info');
+                        if (params.triggerType2 !== 'no_trigger') {
+                            debugLog(`Trigger 2 source: ${params.triggerValueSource2}`, 'info');
+                        }
                         
                         // Update active trigger status display
                         const activeTriggerStatus = document.getElementById('activeTriggerStatus');
-                        activeTriggerStatus.innerHTML = `${tsym} (${params.triggerType})`;
+                        let statusText = `${tsym} (${params.triggerType})`;
+                        if (params.triggerType2 !== 'no_trigger') {
+                            statusText += ` & ${params.triggerType2}`;
+                        }
+                        activeTriggerStatus.innerHTML = statusText;
                         activeTriggerStatus.style.color = '#007bff';
                         
                         // Enable stop button
@@ -2486,89 +2537,104 @@
                             const script = subscribedScripts.get(scriptKey);
                             if (!script) {
                                 clearInterval(checkInterval);
+                                activeCheckIntervals.delete(tsym);
                                 debugLog(`Script ${tsym} no longer available`, 'error');
                                 activeTriggerStatus.innerHTML = 'None';
                                 activeTriggerStatus.style.color = '';
-                                stopButton.disabled = true;
+                                if (activeCheckIntervals.size === 0) stopButton.disabled = true;
                                 reject(new Error("Script not found"));
                                 return;
                             }
 
                             const ltp = parseFloat(script.data.lp);
-                            let triggerValue = params.triggerValue;
+                            if (isNaN(ltp)) return; // Skip if LTP is invalid
 
-                            // Update trigger value based on source
-                            if (params.triggerValueSource === 'ema') {
-                                triggerValue = parseFloat(script.ema);
-                            } else if (params.triggerValueSource === 'sma') {
-                                triggerValue = parseFloat(script.sma);
-                            } else if (params.triggerValueSource === 'hist_high') {
-                                triggerValue = parseFloat(script.historicalHigh);
-                            } else if (params.triggerValueSource === 'hist_low') {
-                                triggerValue = parseFloat(script.historicalLow);
-                            }
+                            let triggerValue1 = params.triggerValue;
+                            let triggerValue2 = params.triggerValue2;
 
-                            let conditionMet = false;
-                            const isCustomTrigger = params.triggerType === 'buy_green_ltp_lt_sma' || 
-                                                  params.triggerType === 'buy_ltp_gt_ema_gt_sma';
+                            // --- Helper function to check a single trigger condition ---
+                            const checkSingleTrigger = (triggerType, triggerValueSource, triggerValue, scriptData) => {
+                                let currentTriggerValue = triggerValue;
+                                const currentLtp = ltp;
+                                const sma = parseFloat(scriptData.sma);
+                                const ema = parseFloat(scriptData.ema);
+                                const histHigh = parseFloat(scriptData.historicalHigh);
+                                const histLow = parseFloat(scriptData.historicalLow);
 
-                            // Prepare status message
-                            let statusMsg = `${tsym} - LTP: ${ltp}`;
-                            let triggerStatusMsg = '';
-
-                            if (!isCustomTrigger) {
-                                statusMsg += `, Trigger: ${triggerValue} (${params.triggerValueSource})`;
-                                triggerStatusMsg = `${tsym} [${ltp} vs ${triggerValue}]`;
+                                // Update trigger value based on source
+                                if (triggerValueSource === 'ema') currentTriggerValue = ema;
+                                else if (triggerValueSource === 'sma') currentTriggerValue = sma;
+                                else if (triggerValueSource === 'hist_high') currentTriggerValue = histHigh;
+                                else if (triggerValueSource === 'hist_low') currentTriggerValue = histLow;
                                 
-                                switch (params.triggerType) {
-                                    case 'buy_above': 
-                                        conditionMet = ltp > triggerValue;
-                                        statusMsg += ` | Waiting for LTP > ${triggerValue}`;
+                                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+
+                                if (!isCustomTrigger && isNaN(currentTriggerValue)) return { met: false, value: NaN }; // Cannot evaluate if trigger value is NaN
+
+                                let conditionMet = false;
+                                switch (triggerType) {
+                                    case 'buy_above': conditionMet = currentLtp > currentTriggerValue; break;
+                                    case 'buy_below': conditionMet = currentLtp < currentTriggerValue; break;
+                                    case 'sell_above': conditionMet = currentLtp > currentTriggerValue; break;
+                                    case 'sell_below': conditionMet = currentLtp < currentTriggerValue; break;
+                                    case 'buy_green_ltp_lt_sma': 
+                                        conditionMet = !isNaN(histHigh) && !isNaN(sma) && !isNaN(ema) && currentLtp > histHigh && currentLtp < sma && ema > sma;
                                         break;
-                                    case 'buy_below': 
-                                        conditionMet = ltp < triggerValue;
-                                        statusMsg += ` | Waiting for LTP < ${triggerValue}`;
+                                    case 'buy_ltp_gt_ema_gt_sma': 
+                                        conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma;
                                         break;
-                                    case 'sell_above': 
-                                        conditionMet = ltp > triggerValue;
-                                        statusMsg += ` | Waiting for LTP > ${triggerValue}`;
-                                        break;
-                                    case 'sell_below': 
-                                        conditionMet = ltp < triggerValue;
-                                        statusMsg += ` | Waiting for LTP < ${triggerValue}`;
+                                    case 'no_trigger': 
+                                        conditionMet = true; // No trigger is always met
                                         break;
                                 }
-                            } else {
-                                const sma = parseFloat(script.sma);
-                                const ema = parseFloat(script.ema);
-                                const histHigh = parseFloat(script.historicalHigh);
-
-                                statusMsg += `, SMA: ${sma}, EMA: ${ema}, High: ${histHigh}`;
-                                triggerStatusMsg = `${tsym} [Custom ${params.triggerType}]`;
-
-                                if (params.triggerType === 'buy_green_ltp_lt_sma') {
-                                    conditionMet = ltp > histHigh && ltp < sma && ema > sma;
-                                    statusMsg += ` | Waiting for LTP(${ltp}) > High(${histHigh}) && < SMA(${sma}) && EMA(${ema}) > SMA(${sma})`;
-                                } else if (params.triggerType === 'buy_ltp_gt_ema_gt_sma') {
-                                    conditionMet = ltp > ema && ema > sma;
-                                    statusMsg += ` | Waiting for LTP(${ltp}) > EMA(${ema}) > SMA(${sma})`;
-                                }
+                                return { met: conditionMet, value: currentTriggerValue }; 
+                            };
+                            // --- End helper function ---
+                            
+                            // Check Trigger 1
+                            const result1 = checkSingleTrigger(params.triggerType, params.triggerValueSource, params.triggerValue, script);
+                            let trigger1Met = result1.met;
+                            let currentTriggerValue1 = result1.value;
+                            
+                            // Check Trigger 2 (if active)
+                            let trigger2Met = true; // Default to true if trigger 2 is not active
+                            let currentTriggerValue2 = NaN;
+                            if (params.triggerType2 !== 'no_trigger') {
+                                const result2 = checkSingleTrigger(params.triggerType2, params.triggerValueSource2, params.triggerValue2, script);
+                                trigger2Met = result2.met;
+                                currentTriggerValue2 = result2.value;
                             }
+                            
+                            // Final condition check (AND logic)
+                            let allConditionsMet = trigger1Met && trigger2Met;
 
-                            // Update active trigger status
+                            // Prepare status messages
+                            let statusMsg = `${tsym} - LTP: ${ltp}`; 
+                            const formatTriggerStatus = (num, type, source, value) => {
+                                if (type === 'no_trigger') return '';
+                                const isCustom = type === 'buy_green_ltp_lt_sma' || type === 'buy_ltp_gt_ema_gt_sma';
+                                if (isCustom) return ` | T${num}: Custom(${type})`;
+                                return ` | T${num}: ${value?.toFixed(2)} (${source}) [${type}]`;
+                            };
+                            statusMsg += formatTriggerStatus(1, params.triggerType, params.triggerValueSource, currentTriggerValue1);
+                            if(params.triggerType2 !== 'no_trigger') {
+                                statusMsg += formatTriggerStatus(2, params.triggerType2, params.triggerValueSource2, currentTriggerValue2);
+                            }
+                            
+                            let triggerStatusMsg = `${tsym} [${params.triggerType}${params.triggerType2 !== 'no_trigger' ? ' & ' + params.triggerType2 : ''}]`;
                             activeTriggerStatus.innerHTML = triggerStatusMsg;
-
-                            // Log status every 5 seconds (to avoid console spam)
+                            
+                            // Log status periodically
                             const currentTime = Date.now();
                             if (!this.lastStatusLog || currentTime - this.lastStatusLog >= 5000) {
                                 debugLog(statusMsg, 'info');
                                 this.lastStatusLog = currentTime;
                             }
-
-                            if (conditionMet) {
+                            
+                            if (allConditionsMet) {
                                 clearInterval(checkInterval);
                                 activeCheckIntervals.delete(tsym);
-                                debugLog(`🎯 Trigger conditions met for ${tsym}! Proceeding with order placement...`, 'success');
+                                debugLog(`🎯 ALL Trigger conditions met for ${tsym}! Proceeding with order placement...`, 'success');
                                 activeTriggerStatus.innerHTML = 'None';
                                 activeTriggerStatus.style.color = '';
                                 if (activeCheckIntervals.size === 0) {
@@ -2576,28 +2642,33 @@
                                 }
                                 resolve();
                             }
-                        }, 1000);
+                        }, 1000); // Check every second
                         
                         // Store the interval
                         activeCheckIntervals.set(tsym, checkInterval);
 
-                        // Use user-defined timeout
-                        setTimeout(() => {
-                            clearInterval(checkInterval);
-                            activeCheckIntervals.delete(tsym);
-                            
-                            debugLog(`⚠️ Trigger monitor timed out after ${timeoutMinutes} minutes for ${tsym}`, 'error');
-                            const activeTriggerStatus = document.getElementById('activeTriggerStatus');
-                            activeTriggerStatus.innerHTML = 'None';
-                            activeTriggerStatus.style.color = '';
-                            
-                            if (activeCheckIntervals.size === 0) {
-                                const stopButton = document.getElementById('stopTriggerBtn');
-                                stopButton.disabled = true;
+                        // Timeout logic
+                        const timeoutId = setTimeout(() => {
+                            if (activeCheckIntervals.has(tsym)) { // Check if it hasn't already been cleared
+                                clearInterval(checkInterval);
+                                activeCheckIntervals.delete(tsym);
+                                
+                                debugLog(`⚠️ Trigger monitor timed out after ${timeoutMinutes} minutes for ${tsym}`, 'error');
+                                const activeTriggerStatus = document.getElementById('activeTriggerStatus');
+                                activeTriggerStatus.innerHTML = 'None';
+                                activeTriggerStatus.style.color = '';
+                                
+                                if (activeCheckIntervals.size === 0) {
+                                    const stopButton = document.getElementById('stopTriggerBtn');
+                                    stopButton.disabled = true;
+                                }
+                                
+                                reject(new Error(`Trigger condition timeout after ${timeoutMinutes} minutes`));
                             }
-                            
-                            reject(new Error(`Trigger condition timeout after ${timeoutMinutes} minutes`));
                         }, timeoutMinutes * 60 * 1000);  // Convert minutes to milliseconds
+                        
+                        // Add timeoutId to the map so it can be cleared if needed
+                        activeCheckIntervals.get(tsym).timeoutId = timeoutId;
                     });
                 },
 
