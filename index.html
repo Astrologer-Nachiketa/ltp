@@ -502,36 +502,39 @@
         .algo-section {
             background: white;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 10px; /* Reduced padding */
+            margin-bottom: 10px; /* Reduced margin */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Slightly reduced shadow */
         }
 
         .input-group {
-            margin: 15px 0;
+            margin: 8px 0; /* Reduced margin */
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px; /* Reduced gap */
         }
 
         .algo-label {
-            width: 120px;
+            width: 100px; /* Slightly reduced label width */
             font-weight: 500;
+            font-size: 13px; /* Slightly smaller font */
         }
 
         .algo-input, .algo-select {
-            padding: 8px;
+            padding: 6px; /* Reduced padding */
             border: 1px solid #ddd;
             border-radius: 4px;
             flex: 1;
+            font-size: 13px; /* Slightly smaller font */
         }
 
         .algo-btn {
-            padding: 10px 20px;
+            padding: 8px 15px; /* Reduced padding */
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s;
+            font-size: 13px; /* Smaller font */
         }
 
         .primary-btn {
@@ -546,29 +549,42 @@
         .price-input-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 15px 0;
+            gap: 10px; /* Reduced gap */
+            margin: 8px 0; /* Reduced margin */
+        }
+        
+        /* Reduce heading margins specifically within algo tab */
+        #algo h2, #algo h3, #algo h4 {
+            margin-top: 8px;
+            margin-bottom: 5px;
+            font-size: 1.1em; /* Slightly smaller headings */
+        }
+        
+        #algo h4 {
+            font-size: 1em; /* Even smaller for sub-headings */
         }
 
         .input-radio-group {
             display: flex;
-            gap: 10px;
-            margin: 5px 0;
+            gap: 8px; /* Reduced gap */
+            margin: 3px 0; /* Reduced margin */
         }
 
         .input-radio-group label {
             width: auto;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px; /* Reduced gap */
+            font-size: 13px; /* Smaller font */
         }
 
         .order-card {
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border-left: 4px solid;
+            padding: 8px; /* Reduced padding */
+            margin: 5px 0; /* Reduced margin */
+            border-radius: 6px; /* Slightly smaller radius */
+            border-left: 3px solid; /* Thinner border */
             position: relative;
+            font-size: 13px; /* Smaller font */
         }
 
         .active.buy { border-color: var(--buy-color); }
@@ -576,9 +592,9 @@
         .completed { border-color: #9E9E9E; }
 
         .badge {
-            padding: 4px 8px;
+            padding: 2px 6px; /* Reduced padding */
             border-radius: 4px;
-            font-size: 0.8em;
+            font-size: 0.75em; /* Smaller badge font */
             font-weight: bold;
         }
 
@@ -590,26 +606,28 @@
             background: var(--loss-color);
             color: white;
             position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
+            top: 5px; /* Adjusted position */
+            right: 5px; /* Adjusted position */
+            padding: 3px 8px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
         }
 
         .status-bar {
             display: flex;
-            gap: 20px;  /* Reduced from 30px to fit new element */
-            padding: 15px;
+            gap: 10px;  /* Reduced gap significantly */
+            padding: 8px; /* Reduced padding */
             background: white;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            border-radius: 6px; /* Smaller radius */
+            margin-bottom: 10px; /* Reduced margin */
             align-items: center;
+            font-size: 13px; /* Smaller font */
         }
 
         .order-details-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 10px;
+            gap: 5px; /* Reduced gap */
+            margin-top: 5px; /* Reduced margin */
         }
 
         .broker-status {
@@ -671,6 +689,47 @@
         #triggerTimeout::-webkit-inner-spin-button {
             opacity: 1;
         }
+
+        /* New Structure for Columns */
+        .algo-main-content {
+            display: flex;
+            gap: 20px;
+        }
+
+        .algo-left-column {
+            flex: 1;
+        }
+
+        .algo-right-column {
+            flex: 1;
+        }
+
+        /* NEW Styles for the two-column layout */
+        .algo-columns-container {
+            display: flex;
+            gap: 15px; /* Adjust gap between columns */
+            margin-bottom: 10px; /* Space below the columns before next section */
+        }
+
+        .algo-column-left {
+            flex: 1; /* Adjust flex basis for width distribution, e.g., flex: 2 for wider left */
+            /* background-color: #f0f8ff; */ /* Optional background for debugging */
+        }
+
+        .algo-column-right {
+            flex: 1; /* Adjust flex basis for width distribution, e.g., flex: 1 for equal width */
+            display: flex;
+            flex-direction: column; /* Stack Modify and Active vertically */
+            gap: 10px; /* Gap between Modify and Active sections */
+            /* background-color: #fff0f5; */ /* Optional background for debugging */
+        }
+
+        /* Ensure sections within columns take full width */
+        .algo-column-left .algo-section,
+        .algo-column-right .algo-section {
+             margin-bottom: 0; /* Remove bottom margin as gap is handled by parent */
+        }
+        /* End NEW Styles */
     </style>
 </head>
 <body>
@@ -797,165 +856,175 @@
                 <button id="stopTriggerBtn" class="stop-trigger-btn" onclick="OrderSystem.stopAllTriggers()" disabled>🛑 Stop Trigger</button>
             </div>
 
-            <div class="algo-section">
-                <h3>📝 New Order</h3>
-                <div class="input-group">
-                    <label class="algo-label">Symbol</label>
-                    <select id="symbol" class="algo-select">
-                        <!-- Dynamically populated -->
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label class="algo-label">Direction</label>
-                    <select id="direction" class="algo-select">
-                        <option value="BUY">Buy</option>
-                        <option value="SELL">Sell</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label class="algo-label">Quantity</label>
-                    <input type="number" id="quantity" class="algo-input" value="75" min="1">
-                </div>
-
-                <div class="price-input-group">
-                    <div>
-                        <h4>🎯 Target</h4>
-                        <div class="input-radio-group">
-                            <label>
-                                <input type="radio" name="targetType" value="percent" checked> %
-                            </label>
-                            <label>
-                                <input type="radio" name="targetType" value="value"> Value
-                            </label>
+            <!-- NEW Container for the two columns -->
+            <div class="algo-columns-container">
+                <!-- Left Column -->
+                <div class="algo-column-left">
+                    <div class="algo-section"> <!-- Existing New Order Section -->
+                        <h3>📝 New Order</h3>
+                        <div class="input-group">
+                            <label class="algo-label">Symbol</label>
+                            <select id="symbol" class="algo-select">
+                                <!-- Dynamically populated -->
+                            </select>
                         </div>
-                        <input type="number" id="targetInput" class="algo-input" step="0.01" value="1">
-                    </div>
-
-                    <div>
-                        <h4>🛑 Stoploss</h4>
-                        <div class="input-radio-group">
-                            <label>
-                                <input type="radio" name="slType" value="percent" checked> %
-                            </label>
-                            <label>
-                                <input type="radio" name="slType" value="value"> Value
-                            </label>
+                        <div class="input-group">
+                            <label class="algo-label">Direction</label>
+                            <select id="direction" class="algo-select">
+                                <option value="BUY">Buy</option>
+                                <option value="SELL">Sell</option>
+                            </select>
                         </div>
-                        <input type="number" id="slInput" class="algo-input" step="0.01" value="1">
-                    </div>
-                </div>
+                        <div class="input-group">
+                            <label class="algo-label">Quantity</label>
+                            <input type="number" id="quantity" class="algo-input" value="75" min="1">
+                        </div>
 
-                <div class="input-group">
-                    <label class="algo-label">Trailing SL</label>
-                    <input type="checkbox" id="trailingSL">
-                </div>
+                        <div class="price-input-group">
+                            <div>
+                                <h4>🎯 Target</h4>
+                                <div class="input-radio-group">
+                                    <label>
+                                        <input type="radio" name="targetType" value="percent" checked> %
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="targetType" value="value"> Value
+                                    </label>
+                                </div>
+                                <input type="number" id="targetInput" class="algo-input" step="0.01" value="1">
+                            </div>
 
-                <div class="input-group">
-                    <label class="algo-label">Trigger Type</label>
-                    <select id="algoTriggerType" class="algo-select">
-                        <option value="no_trigger">No Trigger</option>
-                        <option value="buy_above">Buy Above</option>
-                        <option value="buy_below">Buy Below</option>
-                        <option value="sell_above">Sell Above</option>
-                        <option value="sell_below">Sell Below</option>
-                        <option value="buy_green_ltp_lt_sma">Buy LTP>High<SMA</option>
-                        <option value="buy_ltp_gt_ema_gt_sma">Buy LTP>EMA>SMA</option>
-                    </select>
-                </div>
+                            <div>
+                                <h4>🛑 Stoploss</h4>
+                                <div class="input-radio-group">
+                                    <label>
+                                        <input type="radio" name="slType" value="percent" checked> %
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="slType" value="value"> Value
+                                    </label>
+                                </div>
+                                <input type="number" id="slInput" class="algo-input" step="0.01" value="1">
+                            </div>
+                        </div>
 
-                <div class="input-group">
-                    <label class="algo-label">Trigger Source</label>
-                    <select id="algoTriggerValueSource" class="algo-select">
-                        <option value="fixed">Fixed Value</option>
-                        <option value="ema">EMA (60)</option>
-                        <option value="sma">SMA (60)</option>
-                        <option value="hist_high">Hist. High</option>
-                        <option value="hist_low">Hist. Low</option>
-                    </select>
-                </div>
+                        <div class="input-group">
+                            <label class="algo-label">Trailing SL</label>
+                            <input type="checkbox" id="trailingSL">
+                        </div>
 
-                <div class="input-group">
-                    <label class="algo-label">Trigger Value</label>
-                    <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
-                </div>
+                        <div class="input-group">
+                            <label class="algo-label">Trigger Type</label>
+                            <select id="algoTriggerType" class="algo-select">
+                                <option value="no_trigger">No Trigger</option>
+                                <option value="buy_above">Buy Above</option>
+                                <option value="buy_below">Buy Below</option>
+                                <option value="sell_above">Sell Above</option>
+                                <option value="sell_below">Sell Below</option>
+                                <option value="buy_green_ltp_lt_sma">LTP &gt; High && LTP &gt; EMA &gt; SMA</option>
+                                <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
+                            </select>
+                        </div>
 
-                <!-- Add Second Trigger Set -->
-                <h4 style="margin-top: 20px; margin-bottom: 0; border-top: 1px solid #eee; padding-top: 15px;">AND Second Trigger Condition (Optional)</h4>
-                <div class="input-group">
-                    <label class="algo-label">Trigger 2 Type</label>
-                    <select id="algoTriggerType2" class="algo-select">
-                        <option value="no_trigger">No Trigger</option>
-                        <option value="buy_above">Buy Above</option>
-                        <option value="buy_below">Buy Below</option>
-                        <option value="sell_above">Sell Above</option>
-                        <option value="sell_below">Sell Below</option>
-                        <option value="buy_green_ltp_lt_sma">Buy LTP>High<SMA</option>
-                        <option value="buy_ltp_gt_ema_gt_sma">Buy LTP>EMA>SMA</option>
-                    </select>
-                </div>
+                        <div class="input-group">
+                            <label class="algo-label">Trigger Source</label>
+                            <select id="algoTriggerValueSource" class="algo-select">
+                                <option value="fixed">Fixed Value</option>
+                                <option value="ema">EMA (60)</option>
+                                <option value="sma">SMA (60)</option>
+                                <option value="hist_high">Hist. High</option>
+                                <option value="hist_low">Hist. Low</option>
+                            </select>
+                        </div>
 
-                <div class="input-group">
-                    <label class="algo-label">Trigger 2 Source</label>
-                    <select id="algoTriggerValueSource2" class="algo-select">
-                        <option value="fixed">Fixed Value</option>
-                        <option value="ema">EMA (60)</option>
-                        <option value="sma">SMA (60)</option>
-                        <option value="hist_high">Hist. High</option>
-                        <option value="hist_low">Hist. Low</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label class="algo-label">Trigger 2 Value</label>
-                    <input type="number" id="algoTriggerValue2" class="algo-input" step="0.01" placeholder="Enter trigger 2 value">
-                </div>
-                <!-- End Second Trigger Set -->
-
-                <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
-            </div>
-
-            <div class="algo-section">
-                <h3>⚙️ Modify Order</h3>
-                <div class="input-group">
-                    <label class="algo-label">Order ID</label>
-                    <input type="number" id="modifyId" class="algo-input">
-                </div>
+                        <div class="input-group">
+                            <label class="algo-label">Trigger Value</label>
+                            <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
+                        </div>
                 
-                <div class="price-input-group">
-                    <div>
-                        <h4>🎯 New Target</h4>
-                        <div class="input-radio-group">
-                            <label>
-                                <input type="radio" name="modifyTargetType" value="percent"> %
-                            </label>
-                            <label>
-                                <input type="radio" name="modifyTargetType" value="value"> Value
-                            </label>
+                        <!-- Add Second Trigger Set -->
+                        <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Second Trigger Condition (Optional)</h4>
+                        <div class="input-group">
+                            <label class="algo-label">Trigger 2 Type</label>
+                            <select id="algoTriggerType2" class="algo-select">
+                                <option value="no_trigger">No Trigger</option>
+                                <option value="buy_above">Buy Above</option>
+                                <option value="buy_below">Buy Below</option>
+                                <option value="sell_above">Sell Above</option>
+                                <option value="sell_below">Sell Below</option>
+                                <option value="buy_green_ltp_lt_sma">LTP &gt; High && LTP &gt; EMA &gt; SMA</option>
+                                <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
+                            </select>
                         </div>
-                        <input type="number" id="modifyTarget" class="algo-input" step="0.01">
+
+                        <div class="input-group">
+                            <label class="algo-label">Trigger 2 Source</label>
+                            <select id="algoTriggerValueSource2" class="algo-select">
+                                <option value="fixed">Fixed Value</option>
+                                <option value="ema">EMA (60)</option>
+                                <option value="sma">SMA (60)</option>
+                                <option value="hist_high">Hist. High</option>
+                                <option value="hist_low">Hist. Low</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="algo-label">Trigger 2 Value</label>
+                            <input type="number" id="algoTriggerValue2" class="algo-input" step="0.01" placeholder="Enter trigger 2 value">
+                        </div>
+                        <!-- End Second Trigger Set -->
+
+                        <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
+                    </div>
+                </div> <!-- End Left Column -->
+
+                <!-- Right Column -->
+                <div class="algo-column-right">
+                    <div class="algo-section"> <!-- Existing Modify Order Section -->
+                        <h3>⚙️ Modify Order</h3>
+                        <div class="input-group">
+                            <label class="algo-label">Order ID</label>
+                            <input type="number" id="modifyId" class="algo-input">
+                        </div>
+                        
+                        <div class="price-input-group">
+                            <div>
+                                <h4>🎯 New Target</h4>
+                                <div class="input-radio-group">
+                                    <label>
+                                        <input type="radio" name="modifyTargetType" value="percent"> %
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="modifyTargetType" value="value"> Value
+                                    </label>
+                                </div>
+                                <input type="number" id="modifyTarget" class="algo-input" step="0.01">
+                            </div>
+
+                            <div>
+                                <h4>🛑 New SL</h4>
+                                <div class="input-radio-group">
+                                    <label>
+                                        <input type="radio" name="modifySLType" value="percent"> %
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="modifySLType" value="value"> Value
+                                    </label>
+                                </div>
+                                <input type="number" id="modifySL" class="algo-input" step="0.01">
+                            </div>
+                        </div>
+                        <button class="algo-btn primary-btn" onclick="OrderSystem.handleModifyOrder()">🔄 Update Order</button>
                     </div>
 
-                    <div>
-                        <h4>🛑 New SL</h4>
-                        <div class="input-radio-group">
-                            <label>
-                                <input type="radio" name="modifySLType" value="percent"> %
-                            </label>
-                            <label>
-                                <input type="radio" name="modifySLType" value="value"> Value
-                            </label>
-                        </div>
-                        <input type="number" id="modifySL" class="algo-input" step="0.01">
+                    <div class="algo-section"> <!-- Existing Active Positions Section -->
+                        <h3>📌 Active Positions</h3>
+                        <div id="activeOrders"></div>
                     </div>
-                </div>
-                <button class="algo-btn primary-btn" onclick="OrderSystem.handleModifyOrder()">🔄 Update Order</button>
-            </div>
+                </div> <!-- End Right Column -->
+            </div> <!-- END Columns Container -->
 
-            <div class="algo-section">
-                <h3>📌 Active Positions</h3>
-                <div id="activeOrders"></div>
-            </div>
-
+            <!-- These sections remain below the columns -->
             <div class="algo-section">
                 <h3>📚 Trade History</h3>
                 <div id="completedOrders"></div>
@@ -1612,7 +1681,7 @@
                             <option value="buy_below" ${script.triggerType === 'buy_below' ? 'selected' : ''}>Buy Below</option>
                             <option value="sell_above" ${script.triggerType === 'sell_above' ? 'selected' : ''}>Sell Above</option>
                             <option value="sell_below" ${script.triggerType === 'sell_below' ? 'selected' : ''}>Sell Below</option>
-                            <option value="buy_green_ltp_lt_sma" ${script.triggerType === 'buy_green_ltp_lt_sma' ? 'selected' : ''}>Buy LTP>High&lt;SMA</option>
+                            <option value="buy_green_ltp_lt_sma" ${script.triggerType === 'buy_green_ltp_lt_sma' ? 'selected' : ''}>Buy LTP>High<SMA</option>
                             <option value="buy_ltp_gt_ema_gt_sma" ${script.triggerType === 'buy_ltp_gt_ema_gt_sma' ? 'selected' : ''}>Buy LTP>EMA>SMA</option>
                         </select>
                         <button class="arm-trigger">Arm Trigger</button>
@@ -2453,14 +2522,21 @@
 
                         // Check if trigger conditions are set
                         if (params.triggerType !== 'no_trigger') {
-                            // Validate trigger value based on source
-                            if (params.triggerValueSource === 'fixed' && (!params.triggerValue || isNaN(params.triggerValue))) {
-                                throw new Error("Please enter a valid trigger 1 value");
+                            // --- Corrected Validation Logic --- 
+                            const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma';
+                            // Validate Trigger 1 fixed value only if Type is not custom and Source is fixed
+                            if (!isTrigger1Custom && params.triggerValueSource === 'fixed' && (!params.triggerValue || isNaN(params.triggerValue))) {
+                                throw new Error("Please enter a valid trigger 1 value (required for non-custom trigger types with fixed source).");
                             }
-                            // Validate second trigger if active
-                            if (params.triggerType2 !== 'no_trigger' && params.triggerValueSource2 === 'fixed' && (!params.triggerValue2 || isNaN(params.triggerValue2))) {
-                                throw new Error("Please enter a valid trigger 2 value");
+
+                            // Validate Trigger 2 fixed value only if Trigger 2 is active, Type is not custom and Source is fixed
+                            if (params.triggerType2 !== 'no_trigger') {
+                                const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma';
+                                if (!isTrigger2Custom && params.triggerValueSource2 === 'fixed' && (!params.triggerValue2 || isNaN(params.triggerValue2))) {
+                                    throw new Error("Please enter a valid trigger 2 value (required for non-custom trigger types with fixed source).");
+                                }
                             }
+                            // --- End Corrected Validation --- 
 
                             // Wait for trigger conditions before placing order
                             await this.waitForTriggerCondition(params);
@@ -2578,7 +2654,8 @@
                                     case 'sell_above': conditionMet = currentLtp > currentTriggerValue; break;
                                     case 'sell_below': conditionMet = currentLtp < currentTriggerValue; break;
                                     case 'buy_green_ltp_lt_sma': 
-                                        conditionMet = !isNaN(histHigh) && !isNaN(sma) && !isNaN(ema) && currentLtp > histHigh && currentLtp < sma && ema > sma;
+                                        // Corrected logic to match text "Buy LTP>High Buy LTP>EMA>SMA"
+                                        conditionMet = !isNaN(histHigh) && !isNaN(ema) && !isNaN(sma) && currentLtp > histHigh && currentLtp > ema && ema > sma;
                                         break;
                                     case 'buy_ltp_gt_ema_gt_sma': 
                                         conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma;
