@@ -23,18 +23,17 @@
         /* Credentials Box */
         .cred-box {
             background: white;
-            padding: 10px; /* Reduced */
-            margin-bottom: 8px; /* Reduced */
+            padding: 10px;
+            margin-bottom: 8px;
             border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6; /* Lighter border */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Softer shadow */
         }
-
         .cred-box h2 {
             margin-top: 0;
             margin-bottom: 8px; /* Reduced */
             font-size: 1.2em;
         }
-
         .cred-input {
             width: 100%;
             padding: 10px;
@@ -43,6 +42,11 @@
             border-radius: 6px;
             font-size: 14px;
         }
+        .cred-input:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
 
         /* Controls Section */
         .controls {
@@ -50,10 +54,18 @@
             padding: 10px; /* Reduced */
             margin-bottom: 8px; /* Reduced */
             border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6; /* Lighter border */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Softer shadow */
             display: flex;
             gap: 8px; /* Reduced */
             align-items: center;
+        }
+        .controls input[type="text"]:focus,
+        .controls select:focus,
+        .controls input[type="number"]:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
         }
 
         .status {
@@ -131,29 +143,40 @@
             background: white;
             border-radius: 4px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6; /* Add outer border */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Softer shadow */
             font-size: 13px; /* Smaller font */
         }
-
         th, td {
             padding: 6px 8px; /* Reduced */
             text-align: left;
-            border-bottom: 1px solid #e9ecef;
+            border-bottom: 1px solid #dee2e6; /* Lighter border */
+            border-right: 1px solid #dee2e6; /* Add vertical borders */
             font-size: 13px; /* Smaller font */
             vertical-align: middle; /* Ensure vertical alignment */
         }
-
+        th:last-child,
+        td:last-child {
+            border-right: none; /* Remove last vertical border */
+        }
+        tbody tr:hover {
+            background-color: #f8f9fa; /* Subtle hover effect */
+        }
         th {
             background-color: #f8f9fa;
             font-weight: 600;
         }
-
         .qty-input {
             width: 60px;
             padding: 6px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+        }
+        .qty-input:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
         }
 
         /* Order Status */
@@ -193,7 +216,26 @@
             font-size: 14px;
             font-weight: 500;
             border: none;
-            transition: background 0.2s ease;
+            transition: background-color 0.2s ease;
+            transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, filter 0.15s ease-in-out; /* Added filter transition */
+        }
+        button:not(:disabled):hover {
+            filter: brightness(90%); /* General hover effect */
+        }
+        button:focus-visible {
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); /* Focus ring - using focus-visible */
+        }
+        /* Specific focus colors */
+        .subscribe-btn:focus-visible { box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.5); }
+        .unsubscribe-btn:focus-visible { box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.5); }
+        .sell-btn:focus-visible { box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5); }
+        .refresh-btn:focus-visible { box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5); }
+        .stop-trigger-btn:focus-visible { box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.5); }
+        .primary-btn:focus-visible { box-shadow: 0 0 0 0.2rem rgba(96, 125, 139, 0.5); }
+        a[href*="script.google.com"]:focus-visible {
+             outline: 0;
+             box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.5); /* Green focus for generate token link */
         }
 
         .subscribe-btn {
@@ -515,7 +557,8 @@
             border-radius: 10px;
             padding: 10px; /* Reduced padding */
             margin-bottom: 10px; /* Reduced margin */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Slightly reduced shadow */
+            border: 1px solid #dee2e6; /* Lighter border */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Softer shadow */
         }
 
         .input-group {
@@ -655,7 +698,7 @@
 
         #debugConsole {
             background: #f0f0f0;
-            border: 1px solid #ccc;
+            border: 1px solid #dee2e6; /* Lighter border */
             padding: 10px;
             max-height: 200px;
             overflow-y: auto;
@@ -988,7 +1031,7 @@
         /* Debug Console */
         #debugConsole {
             background: #f0f0f0;
-            border: 1px solid #ccc;
+            border: 1px solid #dee2e6; /* Lighter border */
             padding: 8px; /* Reduced */
             max-height: 150px; /* Reduced */
             overflow-y: auto;
@@ -1333,7 +1376,7 @@
     </div>
 
     <div class="broker-status" id="brokerStatus">
-        Broker Connection: <span class="profit-badge">Connected</span>
+        Broker Connection: <span id="brokerConnectionStatus" class="loss-badge">Disconnected</span>
     </div>
 
     <script>
@@ -1523,9 +1566,30 @@
         }
 
         function updateStatus(status) {
-            const elem = document.getElementById('status');
-            elem.className = `status ${status}`;
-            elem.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            const elemTop = document.getElementById('status');
+            const elemBottom = document.getElementById('brokerConnectionStatus');
+            let topClass, bottomClass;
+
+            if (status === 'connected') {
+                topClass = 'status connected';
+                bottomClass = 'profit-badge'; // Green
+            } else if (status === 'connecting...') {
+                topClass = 'status'; // Neutral style for connecting
+                bottomClass = ''; // Neutral style for connecting
+            } else { // disconnected or other error states
+                topClass = 'status disconnected';
+                bottomClass = 'loss-badge'; // Red
+            }
+            const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            if (elemTop) {
+                elemTop.className = topClass;
+                elemTop.textContent = statusText;
+            }
+            if (elemBottom) {
+                elemBottom.className = bottomClass;
+                elemBottom.textContent = statusText;
+            }
         }
 
         // Exchange Selection
