@@ -861,86 +861,86 @@
                 <!-- Left Column -->
                 <div class="algo-column-left">
                     <div class="algo-section"> <!-- Existing New Order Section -->
-                        <h3>📝 New Order</h3>
-                        <div class="input-group">
-                            <label class="algo-label">Symbol</label>
-                            <select id="symbol" class="algo-select">
-                                <!-- Dynamically populated -->
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label class="algo-label">Direction</label>
-                            <select id="direction" class="algo-select">
-                                <option value="BUY">Buy</option>
-                                <option value="SELL">Sell</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label class="algo-label">Quantity</label>
-                            <input type="number" id="quantity" class="algo-input" value="75" min="1">
-                        </div>
+                <h3>📝 New Order</h3>
+                <div class="input-group">
+                    <label class="algo-label">Symbol</label>
+                    <select id="symbol" class="algo-select">
+                        <!-- Dynamically populated -->
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="algo-label">Direction</label>
+                    <select id="direction" class="algo-select">
+                        <option value="BUY">Buy</option>
+                        <option value="SELL">Sell</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="algo-label">Quantity</label>
+                    <input type="number" id="quantity" class="algo-input" value="75" min="1">
+                </div>
 
-                        <div class="price-input-group">
-                            <div>
-                                <h4>🎯 Target</h4>
-                                <div class="input-radio-group">
-                                    <label>
-                                        <input type="radio" name="targetType" value="percent" checked> %
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="targetType" value="value"> Value
-                                    </label>
-                                </div>
-                                <input type="number" id="targetInput" class="algo-input" step="0.01" value="1">
-                            </div>
-
-                            <div>
-                                <h4>🛑 Stoploss</h4>
-                                <div class="input-radio-group">
-                                    <label>
-                                        <input type="radio" name="slType" value="percent" checked> %
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="slType" value="value"> Value
-                                    </label>
-                                </div>
-                                <input type="number" id="slInput" class="algo-input" step="0.01" value="1">
-                            </div>
+                <div class="price-input-group">
+                    <div>
+                        <h4>🎯 Target</h4>
+                        <div class="input-radio-group">
+                            <label>
+                                <input type="radio" name="targetType" value="percent" checked> %
+                            </label>
+                            <label>
+                                <input type="radio" name="targetType" value="value"> Value
+                            </label>
                         </div>
+                        <input type="number" id="targetInput" class="algo-input" step="0.01" value="1">
+                    </div>
 
-                        <div class="input-group">
-                            <label class="algo-label">Trailing SL</label>
-                            <input type="checkbox" id="trailingSL">
+                    <div>
+                        <h4>🛑 Stoploss</h4>
+                        <div class="input-radio-group">
+                            <label>
+                                <input type="radio" name="slType" value="percent" checked> %
+                            </label>
+                            <label>
+                                <input type="radio" name="slType" value="value"> Value
+                            </label>
                         </div>
+                        <input type="number" id="slInput" class="algo-input" step="0.01" value="1">
+                    </div>
+                </div>
 
-                        <div class="input-group">
-                            <label class="algo-label">Trigger Type</label>
-                            <select id="algoTriggerType" class="algo-select">
-                                <option value="no_trigger">No Trigger</option>
-                                <option value="buy_above">Buy Above</option>
-                                <option value="buy_below">Buy Below</option>
-                                <option value="sell_above">Sell Above</option>
-                                <option value="sell_below">Sell Below</option>
+                <div class="input-group">
+                    <label class="algo-label">Trailing SL</label>
+                    <input type="checkbox" id="trailingSL">
+                </div>
+
+                <div class="input-group">
+                    <label class="algo-label">Trigger Type</label>
+                    <select id="algoTriggerType" class="algo-select">
+                        <option value="no_trigger">No Trigger</option>
+                        <option value="buy_above">Buy Above</option>
+                        <option value="buy_below">Buy Below</option>
+                        <option value="sell_above">Sell Above</option>
+                        <option value="sell_below">Sell Below</option>
                                 <option value="buy_green_ltp_lt_sma">LTP &gt; High && LTP &gt; EMA &gt; SMA</option>
                                 <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
-                            </select>
-                        </div>
+                    </select>
+                </div>
 
-                        <div class="input-group">
-                            <label class="algo-label">Trigger Source</label>
-                            <select id="algoTriggerValueSource" class="algo-select">
-                                <option value="fixed">Fixed Value</option>
-                                <option value="ema">EMA (60)</option>
-                                <option value="sma">SMA (60)</option>
-                                <option value="hist_high">Hist. High</option>
-                                <option value="hist_low">Hist. Low</option>
-                            </select>
-                        </div>
+                <div class="input-group">
+                    <label class="algo-label">Trigger Source</label>
+                    <select id="algoTriggerValueSource" class="algo-select">
+                        <option value="fixed">Fixed Value</option>
+                        <option value="ema">EMA (60)</option>
+                        <option value="sma">SMA (60)</option>
+                        <option value="hist_high">Hist. High</option>
+                        <option value="hist_low">Hist. Low</option>
+                    </select>
+                </div>
 
-                        <div class="input-group">
-                            <label class="algo-label">Trigger Value</label>
-                            <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
-                        </div>
+                <div class="input-group">
+                    <label class="algo-label">Trigger Value</label>
+                    <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
+                </div>
                 
                         <!-- Add Second Trigger Set -->
                         <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Second Trigger Condition (Optional)</h4>
@@ -974,53 +974,53 @@
                         </div>
                         <!-- End Second Trigger Set -->
 
-                        <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
-                    </div>
+                <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
+            </div>
                 </div> <!-- End Left Column -->
 
                 <!-- Right Column -->
                 <div class="algo-column-right">
                     <div class="algo-section"> <!-- Existing Modify Order Section -->
-                        <h3>⚙️ Modify Order</h3>
-                        <div class="input-group">
-                            <label class="algo-label">Order ID</label>
-                            <input type="number" id="modifyId" class="algo-input">
+                <h3>⚙️ Modify Order</h3>
+                <div class="input-group">
+                    <label class="algo-label">Order ID</label>
+                    <input type="number" id="modifyId" class="algo-input">
+                </div>
+                
+                <div class="price-input-group">
+                    <div>
+                        <h4>🎯 New Target</h4>
+                        <div class="input-radio-group">
+                            <label>
+                                <input type="radio" name="modifyTargetType" value="percent"> %
+                            </label>
+                            <label>
+                                <input type="radio" name="modifyTargetType" value="value"> Value
+                            </label>
                         </div>
-                        
-                        <div class="price-input-group">
-                            <div>
-                                <h4>🎯 New Target</h4>
-                                <div class="input-radio-group">
-                                    <label>
-                                        <input type="radio" name="modifyTargetType" value="percent"> %
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="modifyTargetType" value="value"> Value
-                                    </label>
-                                </div>
-                                <input type="number" id="modifyTarget" class="algo-input" step="0.01">
-                            </div>
-
-                            <div>
-                                <h4>🛑 New SL</h4>
-                                <div class="input-radio-group">
-                                    <label>
-                                        <input type="radio" name="modifySLType" value="percent"> %
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="modifySLType" value="value"> Value
-                                    </label>
-                                </div>
-                                <input type="number" id="modifySL" class="algo-input" step="0.01">
-                            </div>
-                        </div>
-                        <button class="algo-btn primary-btn" onclick="OrderSystem.handleModifyOrder()">🔄 Update Order</button>
+                        <input type="number" id="modifyTarget" class="algo-input" step="0.01">
                     </div>
+
+                    <div>
+                        <h4>🛑 New SL</h4>
+                        <div class="input-radio-group">
+                            <label>
+                                <input type="radio" name="modifySLType" value="percent"> %
+                            </label>
+                            <label>
+                                <input type="radio" name="modifySLType" value="value"> Value
+                            </label>
+                        </div>
+                        <input type="number" id="modifySL" class="algo-input" step="0.01">
+                    </div>
+                </div>
+                <button class="algo-btn primary-btn" onclick="OrderSystem.handleModifyOrder()">🔄 Update Order</button>
+            </div>
 
                     <div class="algo-section"> <!-- Existing Active Positions Section -->
-                        <h3>📌 Active Positions</h3>
-                        <div id="activeOrders"></div>
-                    </div>
+                <h3>📌 Active Positions</h3>
+                <div id="activeOrders"></div>
+            </div>
                 </div> <!-- End Right Column -->
             </div> <!-- END Columns Container -->
 
@@ -1454,7 +1454,19 @@
             // Update table row
             updateTableRow(scriptKey);
             
-            // Rest of the existing updateMarketData code...
+            // --- Check Active Algo Triggers on LTP update --- 
+            if (!isNaN(ltp)) {
+                 OrderSystem.updateMarketPrice(scriptKey, ltp); // Update price for bracket orders
+                 const tsymFormat = `${script.tsym}|${script.exch}`;
+                 OrderSystem.updateMarketPrice(tsymFormat, ltp); // Also update with TSym|Exch format
+                 
+                 // Pass the updated script data (including SMA/EMA) to the checker
+                 OrderSystem.checkPendingTriggersForSymbol(scriptKey, script);
+            } 
+            // --- End Trigger Check --- 
+
+            // Rest of the existing updateMarketData code... (This part was previously removed, adding back for context)
+            /*
             const tsymFormat = `${script.tsym}|${script.exch}`;
             
             if (!isNaN(ltp)) {
@@ -1462,6 +1474,7 @@
                 OrderSystem.updateMarketPrice(tsymFormat, ltp);
                 OrderSystem.updateDisplay();
             }
+            */
         }
 
         // Calculate Simple Moving Average
@@ -2244,6 +2257,225 @@
             let orders = [];
             let orderIdCounter = 1;
             let marketData = {};
+            let pendingEntryTriggers = new Map(); // Stores { triggerId: { params, timeoutHandle } }
+            let nextPendingTriggerId = 1;
+
+            // --- Helper: Evaluate a single trigger's conditions ---
+            const evaluateSingleTrigger = (triggerType, triggerValueSource, triggerValue, scriptData) => {
+                let currentTriggerValue = triggerValue;
+                const currentLtp = parseFloat(scriptData?.data?.lp);
+                const sma = parseFloat(scriptData?.sma);
+                const ema = parseFloat(scriptData?.ema);
+                const histHigh = parseFloat(scriptData?.historicalHigh);
+                const histLow = parseFloat(scriptData?.historicalLow);
+
+                if (isNaN(currentLtp)) return { met: false, value: NaN }; // Cannot check without LTP
+
+                // Determine the actual value to compare against based on the selected Source
+                if (triggerValueSource === 'ema') currentTriggerValue = ema;
+                else if (triggerValueSource === 'sma') currentTriggerValue = sma;
+                else if (triggerValueSource === 'hist_high') currentTriggerValue = histHigh;
+                else if (triggerValueSource === 'hist_low') currentTriggerValue = histLow;
+
+                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+
+                // Ensure the comparison value is a number for standard triggers
+                if (!isCustomTrigger && isNaN(currentTriggerValue)) return { met: false, value: NaN };
+
+                let conditionMet = false;
+                // ---- ADDED DEBUG LOGGING ----
+                debugLog(`Evaluating trigger: type=${triggerType}, ltp=${currentLtp}, triggerVal=${currentTriggerValue}, source=${triggerValueSource}`, 'info');
+                // -----------------------------
+                // Evaluate the condition based on the selected Type
+                switch (triggerType) {
+                    case 'buy_above': conditionMet = currentLtp > currentTriggerValue; break;
+                    case 'buy_below': conditionMet = currentLtp < currentTriggerValue; break;
+                    case 'sell_above': conditionMet = currentLtp > currentTriggerValue; break;
+                    case 'sell_below': conditionMet = currentLtp < currentTriggerValue; break;
+                    case 'buy_green_ltp_lt_sma': // "LTP > High && LTP > EMA > SMA"
+                        conditionMet = !isNaN(histHigh) && !isNaN(ema) && !isNaN(sma) && currentLtp > histHigh && currentLtp > ema && ema > sma;
+                        break;
+                    case 'buy_ltp_gt_ema_gt_sma': // "LTP>EMA>SMA"
+                        conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma;
+                        break;
+                    case 'no_trigger':
+                        conditionMet = true; // Always true
+                        break;
+                }
+                // ---- ADDED DEBUG LOGGING ----
+                debugLog(`Trigger evaluation result: conditionMet=${conditionMet}`, 'info');
+                // -----------------------------
+                // Return if condition met and the value used
+                return { met: conditionMet, value: currentTriggerValue };
+            };
+            // --- End Helper ---
+
+            // --- Function to cancel a pending trigger ---
+            const cancelPendingTrigger = (triggerId, reason) => {
+                if (pendingEntryTriggers.has(triggerId)) {
+                    const { params, timeoutHandle } = pendingEntryTriggers.get(triggerId);
+                    clearTimeout(timeoutHandle); // Clear the timeout
+                    pendingEntryTriggers.delete(triggerId);
+                    debugLog(`⛔ Pending trigger #${triggerId} (${params.symbol}) cancelled. Reason: ${reason}`, 'warn');
+                    
+                    // Update UI only if no more pending triggers exist
+                    if (pendingEntryTriggers.size === 0) {
+                         document.getElementById('activeTriggerStatus').innerHTML = 'None';
+                         document.getElementById('activeTriggerStatus').style.color = '';
+                         document.getElementById('stopTriggerBtn').disabled = true;
+                    }
+                    // Potentially update status for the specific symbol if needed in future
+                }
+            };
+            // --- End Cancel Function ---
+
+            // --- Define placeExternalOrder HERE, before it's called ---
+            async function placeExternalOrder(params) {
+                try {
+                    debugLog(`Placing external order: ${JSON.stringify(params)}`, 'log');
+
+                    if (!params.quantity || params.quantity < 1) {
+                        throw new Error("Invalid quantity");
+                    }
+                    if (!params.symbol) {
+                        throw new Error("Missing symbol");
+                    }
+
+                    // Extract tsym and exch from the symbol
+                    const [tsym, exch] = params.symbol.split('|');
+                        
+                    // Find the script in subscribedScripts
+                    let script = null;
+                    let scriptKey = null;
+                    for (const [key, value] of subscribedScripts.entries()) {
+                        if (value.tsym === tsym && value.exch === exch) {
+                            script = value;
+                            scriptKey = key;
+                            break;
+                        }
+                    }
+                        
+                    if (!script || !script.token) {
+                        throw new Error("Symbol not found or not properly subscribed. Please ensure the symbol is added to watchlist first.");
+                    }
+
+                    // Get current price from script data
+                    const currentPrice = script.data?.lp;
+                    if (!currentPrice) {
+                        throw new Error("Unable to get current price. Please ensure the symbol is properly subscribed and receiving market data.");
+                    }
+
+                    // Place order using the correct scriptKey format (calls the GLOBAL placeOrder)
+                    const brokerResponse = await placeOrder(
+                        params.direction === 'BUY' ? 'B' : 'S',
+                        scriptKey,
+                        params.quantity.toString()
+                    );
+
+                    debugLog(`Broker response: ${JSON.stringify(brokerResponse)}`, 'log');
+
+                    if (!brokerResponse || !brokerResponse.norenordno) {
+                        throw new Error("Order placement failed: Invalid broker response.");
+                    }
+
+                    const order = new BracketOrder({
+                        id: orderIdCounter++,
+                        brokerId: brokerResponse.norenordno,
+                        entryPrice: parseFloat(currentPrice),
+                        ...params
+                    });
+
+                    orders.push(order);
+                    updateDisplay();
+                    return order;
+                } catch (error) {
+                    debugLog(`External order placement failed: ${error.message}`, 'error');
+                    throw error;
+                }
+            }
+            // --- End placeExternalOrder Definition ---
+
+            // --- Function to execute a pending trigger ---
+            const executePendingTrigger = async (triggerId) => {
+                 if (pendingEntryTriggers.has(triggerId)) {
+                    const { params, timeoutHandle } = pendingEntryTriggers.get(triggerId);
+                    clearTimeout(timeoutHandle); // Clear the timeout
+                    pendingEntryTriggers.delete(triggerId);
+                    debugLog(`🎯 Executing triggered order for pending trigger #${triggerId} (${params.symbol})...`, 'success');
+
+                    try {
+                        // Use placeExternalOrder to place the actual order
+                        await placeExternalOrder(params); 
+                        // UI update for active trigger status handled by cancelPendingTrigger called implicitly or explicitly before
+                        // Check if UI needs update after successful execution
+                        if (pendingEntryTriggers.size === 0) {
+                            document.getElementById('activeTriggerStatus').innerHTML = 'None';
+                            document.getElementById('activeTriggerStatus').style.color = '';
+                            document.getElementById('stopTriggerBtn').disabled = true;
+                        } else {
+                            // Optional: Update status if other triggers are pending
+                            const remainingSymbols = [...pendingEntryTriggers.values()].map(p => p.params.symbol.split('|')[0]);
+                            document.getElementById('activeTriggerStatus').innerHTML = `Waiting: ${[...new Set(remainingSymbols)].join(', ')}`;
+                        }
+                    } catch (error) { 
+                         debugLog(`❌ Order execution failed for triggered #${triggerId}: ${error.message}`, 'error');
+                         // Decide if trigger should be re-armed or just logged
+                    }
+                }
+            };
+            // --- End Execute Function ---
+
+            // --- Function called by external market data updates ---
+            const checkPendingTriggersForSymbol = (updatedSymbolKey, updatedScriptData) => {
+                // updatedSymbolKey is the Exch|Token format (e.g., 'NFO|43863')
+                // updatedScriptData contains the latest data for that specific key
+
+                // Iterate through all pending triggers
+                pendingEntryTriggers.forEach((triggerInfo, triggerId) => {
+                    const triggerSymbolTsymExch = triggerInfo.params.symbol; // The symbol this trigger is for (e.g., 'NIFTY09APR25C22600|NFO')
+
+                    // Find the corresponding Exch|Token key for this specific trigger's symbol
+                    let triggerExchTokenKey = null;
+                    const triggerScript = Array.from(subscribedScripts.values()).find(s => `${s.tsym}|${s.exch}` === triggerSymbolTsymExch);
+                    if (triggerScript) {
+                        triggerExchTokenKey = `${triggerScript.exch}|${triggerScript.token}`;
+                    } else {
+                        // This trigger's symbol isn't currently subscribed? Should not happen if registered correctly.
+                        // debugLog(`Trigger #${triggerId} symbol ${triggerSymbolTsymExch} not found in subscribedScripts. Cannot check.`, 'warn');
+                        return; // Skip this trigger if we can't find its key
+                    }
+
+                    // *** CORE FIX: Only evaluate if THIS trigger is for the symbol that was just updated ***
+                    if (triggerExchTokenKey === updatedSymbolKey) {
+                        debugLog(`Evaluating trigger #${triggerId} (${triggerSymbolTsymExch}) because its symbol ${updatedSymbolKey} was updated.`, 'info');
+                        const { params } = triggerInfo; // Get the trigger's specific parameters
+
+                        // Evaluate using the trigger's params and the UPDATED script data (which IS the correct data for this symbol)
+                        const result1 = evaluateSingleTrigger(params.triggerType, params.triggerValueSource, params.triggerValue, updatedScriptData);
+                        let trigger1Met = result1.met;
+
+                        // Evaluate Trigger 2 (if active), also using the updatedScriptData
+                        let trigger2Met = true;
+                        if (params.triggerType2 !== 'no_trigger') {
+                            const result2 = evaluateSingleTrigger(params.triggerType2, params.triggerValueSource2, params.triggerValue2, updatedScriptData);
+                            trigger2Met = result2.met;
+                        }
+
+                        // Check AND condition
+                        let allConditionsMet = trigger1Met && trigger2Met;
+
+                        if (allConditionsMet) {
+                            debugLog(`✅ Conditions MET for pending trigger #${triggerId} (${params.symbol})!`, 'log');
+                            executePendingTrigger(triggerId);
+                        } else {
+                            // Log that conditions were checked but not met for this specific trigger
+                            debugLog(`Conditions not met for #${triggerId} (${params.symbol}).`, 'info');
+                        }
+                    }
+                    // Else: The market update was for a different symbol, so ignore this trigger for this update.
+                });
+            };
+            // --- End Check Function ---
 
             class BracketOrder {
                 constructor(params) {
@@ -2480,8 +2712,10 @@
                                 marketData[altSymbol] = { ltp: price };
                                 order.checkConditions(price);
                                 
-                                // Debug log
+                                // Debug log only if the order is still active
+                                if (order.active) {
                                 console.log(`Updated order ${order.id} with price ${price}`);
+                                }
                             }
                         }
                     });
@@ -2500,7 +2734,7 @@
                 async handleUIPlaceOrder() {
                     try {
                         const params = {
-                            symbol: document.getElementById("symbol").value,
+                            symbol: document.getElementById("symbol").value, // Format: TSym|Exch
                             direction: document.getElementById("direction").value,
                             quantity: parseInt(document.getElementById("quantity").value),
                             target: parseFloat(document.getElementById("targetInput").value),
@@ -2510,243 +2744,59 @@
                                 sl: document.querySelector('input[name="slType"]:checked').value === 'percent'
                             },
                             trailing: document.getElementById("trailingSL").checked,
-                            // Add new trigger-related parameters
                             triggerType: document.getElementById("algoTriggerType").value,
                             triggerValue: parseFloat(document.getElementById("algoTriggerValue").value),
                             triggerValueSource: document.getElementById("algoTriggerValueSource").value,
-                            // Add second trigger parameters
                             triggerType2: document.getElementById("algoTriggerType2").value,
                             triggerValue2: parseFloat(document.getElementById("algoTriggerValue2").value),
                             triggerValueSource2: document.getElementById("algoTriggerValueSource2").value
                         };
 
-                        // Check if trigger conditions are set
-                        if (params.triggerType !== 'no_trigger') {
-                            // --- Corrected Validation Logic --- 
-                            const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma';
-                            // Validate Trigger 1 fixed value only if Type is not custom and Source is fixed
-                            if (!isTrigger1Custom && params.triggerValueSource === 'fixed' && (!params.triggerValue || isNaN(params.triggerValue))) {
-                                throw new Error("Please enter a valid trigger 1 value (required for non-custom trigger types with fixed source).");
-                            }
-
-                            // Validate Trigger 2 fixed value only if Trigger 2 is active, Type is not custom and Source is fixed
-                            if (params.triggerType2 !== 'no_trigger') {
-                                const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma';
-                                if (!isTrigger2Custom && params.triggerValueSource2 === 'fixed' && (!params.triggerValue2 || isNaN(params.triggerValue2))) {
-                                    throw new Error("Please enter a valid trigger 2 value (required for non-custom trigger types with fixed source).");
-                                }
-                            }
-                            // --- End Corrected Validation --- 
-
-                            // Wait for trigger conditions before placing order
-                            await this.waitForTriggerCondition(params);
-                        }
-                        
+                        // --- If no trigger is set, place order immediately --- 
+                        if (params.triggerType === 'no_trigger') {
+                            debugLog('No trigger set, placing order immediately.', 'info');
                         const order = await this.placeExternalOrder(params);
-                        debugLog(`Order placed successfully: #${order.id}`, 'success');
-                    } catch (error) {
-                        debugLog(`Order placement failed: ${error.message}`, 'error');
-                        alert("Order placement failed: " + error.message);
-                    }
-                },
-
-                // Add new method to wait for trigger conditions
-                async waitForTriggerCondition(params) {
-                    return new Promise((resolve, reject) => {
-                        const [tsym, exch] = params.symbol.split('|');
-                        let scriptKey = null;
-                        
-                        // Check if we're in stopping state
-                        if (isStoppingTriggers) {
-                            debugLog(`Cannot start new trigger while stopping others`, 'error');
-                            reject(new Error("Trigger system is stopping"));
-                            return;
+                            debugLog(`Immediate order placed successfully: #${order.id}`, 'success');
+                            return; // Exit after placing immediate order
                         }
 
-                        // Initial debug log
-                        let triggerDesc = `Trigger 1: ${params.triggerType}`; 
-                        if (params.triggerType2 !== 'no_trigger') {
-                            triggerDesc += ` AND Trigger 2: ${params.triggerType2}`;
+                        // --- Validation for Triggered Order --- 
+                        const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma';
+                        if (!isTrigger1Custom && params.triggerValueSource === 'fixed' && isNaN(params.triggerValue)) {
+                            throw new Error("Please enter a valid trigger 1 value (required for non-custom trigger types with fixed source).");
                         }
-                        debugLog(`Starting algo trigger monitor for ${tsym}`, 'info');
-                        debugLog(triggerDesc, 'info');
-                        debugLog(`Trigger 1 source: ${params.triggerValueSource}`, 'info');
                         if (params.triggerType2 !== 'no_trigger') {
-                            debugLog(`Trigger 2 source: ${params.triggerValueSource2}`, 'info');
-                        }
-                        
-                        // Update active trigger status display
-                        const activeTriggerStatus = document.getElementById('activeTriggerStatus');
-                        let statusText = `${tsym} (${params.triggerType})`;
-                        if (params.triggerType2 !== 'no_trigger') {
-                            statusText += ` & ${params.triggerType2}`;
-                        }
-                        activeTriggerStatus.innerHTML = statusText;
-                        activeTriggerStatus.style.color = '#007bff';
-                        
-                        // Enable stop button
-                        const stopButton = document.getElementById('stopTriggerBtn');
-                        stopButton.disabled = false;
-                        
-                        // Find the correct script key
-                        for (const [key, value] of subscribedScripts.entries()) {
-                            if (value.tsym === tsym && value.exch === exch) {
-                                scriptKey = key;
-                                break;
+                            const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma';
+                            if (!isTrigger2Custom && params.triggerValueSource2 === 'fixed' && isNaN(params.triggerValue2)) {
+                                throw new Error("Please enter a valid trigger 2 value (required for non-custom trigger types with fixed source).");
                             }
                         }
+                        // --- End Validation ---
 
-                        if (!scriptKey) {
-                            debugLog(`Symbol ${tsym} not found in subscribed scripts`, 'error');
-                            activeTriggerStatus.innerHTML = 'None';
-                            activeTriggerStatus.style.color = '';
-                            stopButton.disabled = true;
-                            reject(new Error("Symbol not found"));
-                            return;
-                        }
-
-                        // Get user-defined timeout value (default to 5 if invalid)
+                        // --- Register Pending Trigger --- 
+                        const triggerId = nextPendingTriggerId++;
                         const timeoutInput = document.getElementById('triggerTimeout');
                         const timeoutMinutes = Math.max(1, parseInt(timeoutInput.value) || 5);
+                        const timeoutMs = timeoutMinutes * 60 * 1000;
+
+                        const timeoutHandle = setTimeout(() => {
+                            cancelPendingTrigger(triggerId, `Timeout (${timeoutMinutes} min)`);
+                        }, timeoutMs);
+
+                        pendingEntryTriggers.set(triggerId, { params, timeoutHandle });
+                        debugLog(`⏳ Pending entry trigger #${triggerId} registered for ${params.symbol} with ${timeoutMinutes} min timeout.`, 'info');
+
+                        // --- Update UI --- 
+                            const activeTriggerStatus = document.getElementById('activeTriggerStatus');
+                        const symbolsWaiting = [...pendingEntryTriggers.values()].map(p => p.params.symbol.split('|')[0]);
+                        activeTriggerStatus.innerHTML = `Waiting: ${[...new Set(symbolsWaiting)].join(', ')}`;
+                        activeTriggerStatus.style.color = '#ff9800'; // Orange color for waiting
+                        document.getElementById('stopTriggerBtn').disabled = false;
                         
-                        const checkInterval = setInterval(() => {
-                            const script = subscribedScripts.get(scriptKey);
-                            if (!script) {
-                                clearInterval(checkInterval);
-                                activeCheckIntervals.delete(tsym);
-                                debugLog(`Script ${tsym} no longer available`, 'error');
-                                activeTriggerStatus.innerHTML = 'None';
-                                activeTriggerStatus.style.color = '';
-                                if (activeCheckIntervals.size === 0) stopButton.disabled = true;
-                                reject(new Error("Script not found"));
-                                return;
-                            }
-
-                            const ltp = parseFloat(script.data.lp);
-                            if (isNaN(ltp)) return; // Skip if LTP is invalid
-
-                            let triggerValue1 = params.triggerValue;
-                            let triggerValue2 = params.triggerValue2;
-
-                            // --- Helper function to check a single trigger condition ---
-                            const checkSingleTrigger = (triggerType, triggerValueSource, triggerValue, scriptData) => {
-                                let currentTriggerValue = triggerValue;
-                                const currentLtp = ltp;
-                                const sma = parseFloat(scriptData.sma);
-                                const ema = parseFloat(scriptData.ema);
-                                const histHigh = parseFloat(scriptData.historicalHigh);
-                                const histLow = parseFloat(scriptData.historicalLow);
-
-                                // Update trigger value based on source
-                                if (triggerValueSource === 'ema') currentTriggerValue = ema;
-                                else if (triggerValueSource === 'sma') currentTriggerValue = sma;
-                                else if (triggerValueSource === 'hist_high') currentTriggerValue = histHigh;
-                                else if (triggerValueSource === 'hist_low') currentTriggerValue = histLow;
-                                
-                                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
-
-                                if (!isCustomTrigger && isNaN(currentTriggerValue)) return { met: false, value: NaN }; // Cannot evaluate if trigger value is NaN
-
-                                let conditionMet = false;
-                                switch (triggerType) {
-                                    case 'buy_above': conditionMet = currentLtp > currentTriggerValue; break;
-                                    case 'buy_below': conditionMet = currentLtp < currentTriggerValue; break;
-                                    case 'sell_above': conditionMet = currentLtp > currentTriggerValue; break;
-                                    case 'sell_below': conditionMet = currentLtp < currentTriggerValue; break;
-                                    case 'buy_green_ltp_lt_sma': 
-                                        // Corrected logic to match text "Buy LTP>High Buy LTP>EMA>SMA"
-                                        conditionMet = !isNaN(histHigh) && !isNaN(ema) && !isNaN(sma) && currentLtp > histHigh && currentLtp > ema && ema > sma;
-                                        break;
-                                    case 'buy_ltp_gt_ema_gt_sma': 
-                                        conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma;
-                                        break;
-                                    case 'no_trigger': 
-                                        conditionMet = true; // No trigger is always met
-                                        break;
-                                }
-                                return { met: conditionMet, value: currentTriggerValue }; 
-                            };
-                            // --- End helper function ---
-                            
-                            // Check Trigger 1
-                            const result1 = checkSingleTrigger(params.triggerType, params.triggerValueSource, params.triggerValue, script);
-                            let trigger1Met = result1.met;
-                            let currentTriggerValue1 = result1.value;
-                            
-                            // Check Trigger 2 (if active)
-                            let trigger2Met = true; // Default to true if trigger 2 is not active
-                            let currentTriggerValue2 = NaN;
-                            if (params.triggerType2 !== 'no_trigger') {
-                                const result2 = checkSingleTrigger(params.triggerType2, params.triggerValueSource2, params.triggerValue2, script);
-                                trigger2Met = result2.met;
-                                currentTriggerValue2 = result2.value;
-                            }
-                            
-                            // Final condition check (AND logic)
-                            let allConditionsMet = trigger1Met && trigger2Met;
-
-                            // Prepare status messages
-                            let statusMsg = `${tsym} - LTP: ${ltp}`; 
-                            const formatTriggerStatus = (num, type, source, value) => {
-                                if (type === 'no_trigger') return '';
-                                const isCustom = type === 'buy_green_ltp_lt_sma' || type === 'buy_ltp_gt_ema_gt_sma';
-                                if (isCustom) return ` | T${num}: Custom(${type})`;
-                                return ` | T${num}: ${value?.toFixed(2)} (${source}) [${type}]`;
-                            };
-                            statusMsg += formatTriggerStatus(1, params.triggerType, params.triggerValueSource, currentTriggerValue1);
-                            if(params.triggerType2 !== 'no_trigger') {
-                                statusMsg += formatTriggerStatus(2, params.triggerType2, params.triggerValueSource2, currentTriggerValue2);
-                            }
-                            
-                            let triggerStatusMsg = `${tsym} [${params.triggerType}${params.triggerType2 !== 'no_trigger' ? ' & ' + params.triggerType2 : ''}]`;
-                            activeTriggerStatus.innerHTML = triggerStatusMsg;
-                            
-                            // Log status periodically
-                            const currentTime = Date.now();
-                            if (!this.lastStatusLog || currentTime - this.lastStatusLog >= 5000) {
-                                debugLog(statusMsg, 'info');
-                                this.lastStatusLog = currentTime;
-                            }
-                            
-                            if (allConditionsMet) {
-                                clearInterval(checkInterval);
-                                activeCheckIntervals.delete(tsym);
-                                debugLog(`🎯 ALL Trigger conditions met for ${tsym}! Proceeding with order placement...`, 'success');
-                                activeTriggerStatus.innerHTML = 'None';
-                                activeTriggerStatus.style.color = '';
-                                if (activeCheckIntervals.size === 0) {
-                                    stopButton.disabled = true;
-                                }
-                                resolve();
-                            }
-                        }, 1000); // Check every second
-                        
-                        // Store the interval
-                        activeCheckIntervals.set(tsym, checkInterval);
-
-                        // Timeout logic
-                        const timeoutId = setTimeout(() => {
-                            if (activeCheckIntervals.has(tsym)) { // Check if it hasn't already been cleared
-                                clearInterval(checkInterval);
-                                activeCheckIntervals.delete(tsym);
-                                
-                                debugLog(`⚠️ Trigger monitor timed out after ${timeoutMinutes} minutes for ${tsym}`, 'error');
-                                const activeTriggerStatus = document.getElementById('activeTriggerStatus');
-                                activeTriggerStatus.innerHTML = 'None';
-                                activeTriggerStatus.style.color = '';
-                                
-                                if (activeCheckIntervals.size === 0) {
-                                    const stopButton = document.getElementById('stopTriggerBtn');
-                                    stopButton.disabled = true;
-                                }
-                                
-                                reject(new Error(`Trigger condition timeout after ${timeoutMinutes} minutes`));
-                            }
-                        }, timeoutMinutes * 60 * 1000);  // Convert minutes to milliseconds
-                        
-                        // Add timeoutId to the map so it can be cleared if needed
-                        activeCheckIntervals.get(tsym).timeoutId = timeoutId;
-                    });
+                    } catch (error) {
+                        debugLog(`Order placement/trigger setup failed: ${error.message}`, 'error');
+                        alert("Order placement/trigger setup failed: " + error.message);
+                    }
                 },
 
                 async handleModifyOrder() {
@@ -2882,30 +2932,27 @@
                 updateDisplay,
 
                 stopAllTriggers() {
-                    isStoppingTriggers = true;
-                    debugLog('🛑 Stopping all active triggers...', 'warn');
+                    debugLog('🛑 Stopping all active pending entry triggers...', 'warn');
                     
-                    // Clear all check intervals
-                    activeCheckIntervals.forEach((interval, key) => {
-                        clearInterval(interval);
-                        debugLog(`Stopped trigger for ${key}`, 'info');
+                    // Get all pending trigger IDs before iterating, as cancel modifies the map
+                    const triggerIds = Array.from(pendingEntryTriggers.keys());
+                    
+                    triggerIds.forEach(triggerId => {
+                        cancelPendingTrigger(triggerId, 'Manual Stop');
                     });
                     
-                    // Reset all states
-                    activeCheckIntervals.clear();
+                    // Ensure UI is fully reset even if there were no triggers initially
+                    if (pendingEntryTriggers.size === 0) { // Double check size after cancellation
+                       document.getElementById('activeTriggerStatus').innerHTML = 'None';
+                       document.getElementById('activeTriggerStatus').style.color = '';
+                       document.getElementById('stopTriggerBtn').disabled = true;
+                    }
                     
-                    // Reset UI elements
-                    const activeTriggerStatus = document.getElementById('activeTriggerStatus');
-                    activeTriggerStatus.innerHTML = 'None';
-                    activeTriggerStatus.style.color = '';
-                    
-                    // Disable stop button
-                    const stopButton = document.getElementById('stopTriggerBtn');
-                    stopButton.disabled = true;
-                    
-                    isStoppingTriggers = false;
-                    debugLog('✅ All triggers stopped successfully', 'success');
-                }
+                    debugLog('✅ All pending entry triggers stopped.', 'success');
+                },
+
+                // Expose the trigger checking function
+                checkPendingTriggersForSymbol: checkPendingTriggersForSymbol 
             };
         })();
 
