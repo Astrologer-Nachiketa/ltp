@@ -7,11 +7,12 @@
     <style>
         /* General Styles */
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 5px;
-            background: #f0f2f5;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f9;
             margin: 0;
+            padding: 8px; /* Reduced */
+            color: #333;
+            font-size: 14px; /* Slightly smaller base font */
         }
 
         h3 {
@@ -21,11 +22,17 @@
 
         /* Credentials Box */
         .cred-box {
-            margin-bottom: 20px;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px; /* Reduced */
+            margin-bottom: 8px; /* Reduced */
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .cred-box h2 {
+            margin-top: 0;
+            margin-bottom: 8px; /* Reduced */
+            font-size: 1.2em;
         }
 
         .cred-input {
@@ -39,11 +46,14 @@
 
         /* Controls Section */
         .controls {
-            margin-bottom: 20px;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px; /* Reduced */
+            margin-bottom: 8px; /* Reduced */
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 8px; /* Reduced */
+            align-items: center;
         }
 
         .status {
@@ -122,14 +132,15 @@
             border-radius: 4px;
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            font-size: 16px;
+            font-size: 13px; /* Smaller font */
         }
 
         th, td {
-            padding: 12px;
+            padding: 6px 8px; /* Reduced */
             text-align: left;
             border-bottom: 1px solid #e9ecef;
-            font-size: 16px;
+            font-size: 13px; /* Smaller font */
+            vertical-align: middle; /* Ensure vertical alignment */
         }
 
         th {
@@ -150,7 +161,7 @@
             margin-top: 5px;
             padding: 4px;
             background: white;
-            border-radius: 8px;
+            border-radius: 6px; /* Slightly smaller */
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
@@ -271,31 +282,31 @@
         /* Real-time Status Styles */
         .market-container {
             display: flex;
-            gap: 5px;
-            margin-bottom: 4px;
+            gap: 5px; /* Reduced */
+            margin-bottom: 5px; /* Reduced */
         }
         .market-table { flex: 2; }
         .status-panel {
             flex: 1;
             background: #f8f9fa;
-            padding: 5px;
+            padding: 5px; /* Reduced */
             border-radius: 4px;
-            min-width: 300px;
+            min-width: 250px; /* Slightly reduced min-width */
         }
         .status-content {
             font-family: monospace;
-            font-size: 14px;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            max-height: 300px;
+            font-size: 12px; /* Smaller font */
+            line-height: 1.3; /* Reduced line height */
+            max-height: 250px; /* Reduced height */
             overflow-y: auto;
-            padding: 5px;
+            padding: 3px; /* Reduced */
         }
         .status-entry {
-            padding: 5px;
-            margin: 5px 0;
+            padding: 3px 5px; /* Reduced */
+            margin: 3px 0; /* Reduced */
             border-left: 3px solid #007bff;
-            background: rgba(0,123,255,0.1);
+            background: rgba(0,123,255,0.08); /* Slightly less intense */
+            font-size: 12px; /* Match status content */
             transition: all 0.2s ease-in-out;
             opacity: 0;
             transform: translateX(-10px);
@@ -326,11 +337,11 @@
 
         /* Order Book Styles */
         .order-book {
-            margin-top: 2px;
+            margin-top: 5px; /* Reduced */
             background: white;
-            padding: 5px;
+            padding: 5px; /* Reduced */
             border-radius: 3px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); /* Slightly softer */
         }
 
         .refresh-btn {
@@ -632,12 +643,14 @@
 
         .broker-status {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px;
+            bottom: 5px; /* Closer to bottom */
+            right: 5px; /* Closer to right */
+            padding: 5px 8px; /* Reduced */
             background: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            font-size: 12px; /* Smaller font */
+            z-index: 1001; /* Ensure above shark */
         }
 
         #debugConsole {
@@ -730,6 +743,286 @@
              margin-bottom: 0; /* Remove bottom margin as gap is handled by parent */
         }
         /* End NEW Styles */
+
+        /* Input Row adjustments */
+        .input-row {
+            display: flex;
+            gap: 8px; /* Reduced */
+            margin-bottom: 6px; /* Reduced */
+        }
+        .input-row label {
+            width: 100px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .input-row input[type="text"],
+        .input-row input[type="password"] {
+            flex: 1;
+            padding: 6px 8px; /* Reduced */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px; /* Smaller font */
+        }
+        .input-row button {
+            padding: 6px 12px; /* Reduced */
+        }
+        .controls input[type="text"] {
+            padding: 6px 8px; /* Reduced */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px; /* Smaller font */
+        }
+
+        /* Search Results */
+        .search-results {
+             /* ... position styles ... */
+            width: calc(100% - 22px); /* Adjust if container padding changes */
+             /* ... other styles ... */
+        }
+        .search-item {
+            padding: 8px 12px; /* Reduced */
+            /* ... other styles ... */
+            font-size: 13px; /* Smaller font */
+        }
+
+        /* Qty Input in main table */
+        .qty-input {
+            width: 50px; /* Reduced */
+            padding: 4px 6px; /* Reduced */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px; /* Smaller font */
+            margin-right: 3px; /* Add small gap */
+            vertical-align: middle;
+        }
+
+        /* Specific adjustments for trigger cell elements */
+        td .trigger-value,
+        td .trigger-value-source,
+        td .trigger-type,
+        td .arm-trigger {
+            padding: 4px 6px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
+            margin-right: 3px; /* Add small gap between elements */
+            height: 28px; /* Consistent height */
+            vertical-align: middle;
+            display: inline-block; /* Ensure inline behavior */
+        }
+        td .trigger-value { width: 70px; /* Adjust width */ }
+
+        /* Success/Error Messages */
+        .success, .error {
+            padding: 4px 8px; /* Reduced */
+            border-radius: 4px;
+            margin-bottom: 4px; /* Reduced */
+            font-size: 13px; /* Smaller font */
+        }
+        .success { /* ... colors ... */ }
+        .error { /* ... colors ... */ }
+
+        /* General Button Styles */
+        button {
+            padding: 5px 10px; /* Reduced */
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px; /* Smaller font */
+            font-weight: 500;
+            border: none;
+            transition: background 0.2s ease;
+            vertical-align: middle; /* Align buttons */
+        }
+        .subscribe-btn { /* ... colors ... */ }
+        .unsubscribe-btn { /* ... colors ... */ }
+        .sell-btn { /* ... colors ... */ }
+        .refresh-btn { /* ... colors ... */ margin-bottom: 1px; }
+        .stop-trigger-btn {
+            background-color: #ffc107; /* Warning yellow */
+            color: #333;
+            padding: 4px 8px; /* Reduced */
+            font-size: 12px; /* Smaller */
+        }
+        .stop-trigger-btn:disabled { /* ... styles ... */ }
+
+        /* Algo Trading Tab Styles */
+        .tab-bar {
+            display: flex;
+            gap: 5px; /* Reduced */
+            margin-bottom: 10px; /* Reduced */
+        }
+        .tab-btn {
+            padding: 6px 15px; /* Reduced */
+            /* ... other styles ... */
+            font-size: 13px; /* Smaller font */
+        }
+        .tab-btn.active { /* ... styles ... */ }
+
+        .algo-section {
+            background: white;
+            border-radius: 6px; /* Slightly smaller */
+            padding: 8px; /* Reduced */
+            margin-bottom: 8px; /* Reduced */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08); /* Slightly reduced shadow */
+        }
+
+        /* Algo Columns */
+        .algo-columns-container {
+            display: flex;
+            gap: 10px; /* Reduced */
+        }
+        .algo-column-left { flex: 1; min-width: 350px; }
+        .algo-column-right { flex: 1; min-width: 300px; }
+
+        /* Algo Input Groups */
+        .input-group {
+            margin: 6px 0; /* Reduced margin */
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Reduced gap */
+        }
+        .algo-label {
+            width: 90px; /* Slightly reduced label width */
+            font-weight: 500;
+            font-size: 13px; /* Smaller font */
+            flex-shrink: 0; /* Prevent label shrinking */
+        }
+        .algo-input, .algo-select {
+            padding: 5px 8px; /* Reduced padding */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex-grow: 1; /* Allow input to grow */
+            font-size: 13px; /* Smaller font */
+            min-width: 50px; /* Prevent excessive shrinking */
+        }
+        .algo-btn {
+            padding: 6px 12px; /* Reduced padding */
+            /* ... other styles ... */
+            font-size: 13px; /* Smaller font */
+            margin-top: 5px; /* Add small top margin */
+        }
+        .primary-btn { /* ... colors ... */ }
+
+        /* Algo Price/Radio Groups */
+        .price-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px; /* Reduced gap */
+            margin: 6px 0; /* Reduced margin */
+        }
+        .input-radio-group {
+            display: flex;
+            gap: 6px; /* Reduced gap */
+            margin: 2px 0 4px 0; /* Reduced margin */
+        }
+        .input-radio-group label {
+            width: auto;
+            display: flex;
+            align-items: center;
+            gap: 3px; /* Reduced gap */
+            font-size: 12px; /* Smaller font */
+        }
+
+        /* Algo Headings */
+        #algo h2, #algo h3, #algo h4 {
+            margin-top: 6px; /* Reduced */
+            margin-bottom: 4px; /* Reduced */
+            font-size: 1.1em; /* Slightly smaller headings */
+        }
+        #algo h4 { font-size: 1em; }
+        #algo h4[style*="margin-top:"] { /* Specific override for 2nd trigger heading */
+             margin-top: 10px !important; /* Reduced */
+             margin-bottom: 5px !important;
+             padding-top: 8px !important; /* Reduced */
+             font-size: 1em !important; /* Consistent size */
+        }
+
+        /* Algo Order Cards */
+        .order-card {
+            padding: 6px 8px; /* Reduced padding */
+            margin: 4px 0; /* Reduced margin */
+            border-radius: 4px; /* Slightly smaller radius */
+            border-left: 3px solid;
+            position: relative;
+            font-size: 12px; /* Smaller font */
+        }
+        /* ... order card colors/states ... */
+        .badge {
+            padding: 1px 5px; /* Reduced padding */
+            border-radius: 3px; /* Smaller */
+            font-size: 0.8em; /* Smaller badge font */
+            font-weight: bold;
+            margin-left: 4px; /* Add space before badge */
+        }
+        .exit-btn {
+            /* ... positioning ... */
+            padding: 2px 6px; /* Reduced padding */
+            font-size: 11px; /* Smaller font */
+            border-radius: 3px; /* Smaller */
+        }
+        .order-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Responsive columns */
+            gap: 4px; /* Reduced gap */
+            margin-top: 4px; /* Reduced margin */
+        }
+
+        /* Algo Status Bar */
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+            gap: 8px;  /* Reduced gap */
+            padding: 6px 8px; /* Reduced padding */
+            background: white;
+            border-radius: 4px; /* Smaller radius */
+            margin-bottom: 8px; /* Reduced margin */
+            align-items: center;
+            font-size: 13px; /* Smaller font */
+        }
+         .status-bar > div { white-space: nowrap; }
+         .status-bar input[type="number"] { /* Adjust input in status bar */
+             width: 45px !important; /* Override inline style */
+             padding: 2px 4px !important; /* Override inline style */
+             font-size: 12px;
+             margin: 0 2px !important; /* Override inline style */
+         }
+
+        /* Debug Console */
+        #debugConsole {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 8px; /* Reduced */
+            max-height: 150px; /* Reduced */
+            overflow-y: auto;
+            margin-top: 10px; /* Reduced */
+            font-size: 11px; /* Smaller font */
+            line-height: 1.3; /* Reduced */
+        }
+
+        /* Tooltips */
+        [data-tooltip]::after {
+            /* ... positioning ... */
+            padding: 4px 8px; /* Reduced */
+            /* ... other styles ... */
+            font-size: 11px; /* Smaller font */
+        }
+
+        /* Trigger cell in main table - Refined */
+        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
+            white-space: nowrap; /* Prevent wrapping within the cell */
+        }
+        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
+            display: inline-block; /* Keep elements inline */
+            vertical-align: middle; /* Align them vertically */
+            margin-right: 4px; /* Consistent spacing */
+            margin-bottom: 2px; /* Small bottom margin if they wrap */
+        }
+         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
+         #dataBody td:nth-child(5) .arm-trigger { /* No fixed width needed */ }
+
+         #dataBody td:nth-child(5) > *:last-child {
+             margin-right: 0; /* No margin for the last element */
+         }
     </style>
 </head>
 <body>
@@ -770,6 +1063,8 @@
         <div style="margin-top: 10px;">
             <input type="text" id="searchInput" placeholder="Search Symbol">
             <button onclick="searchSymbol()">Search</button>
+
+            <label for="historicalPeriod" style="margin-left: 15px; font-weight: 500; margin-right: 5px;">Hist. Period:</label> 
             <select id="historicalPeriod" onchange="refreshHistoricalData()">
                 <option value="15">15 Min</option>
                 <option value="60">1 Hour</option>
@@ -2612,12 +2907,26 @@
             };
 
             function updateDisplay() {
+                const activeOrders = orders.filter(o => o.active);
+                const completedOrders = orders.filter(o => !o.active);
+
                 const totalPnl = orders.reduce((sum, o) => sum + (o.pnl || 0), 0);
                 document.getElementById("totalPnl").textContent = totalPnl.toFixed(2);
-                document.getElementById("activeCount").textContent = orders.filter(o => o.active).length;
+                document.getElementById("activeCount").textContent = activeOrders.length;
 
-                document.getElementById("activeOrders").innerHTML = orders
-                    .filter(o => o.active)
+                // --- Auto-fill Modify Order ID --- 
+                const latestActiveOrderId = activeOrders.length > 0 
+                    ? Math.max(...activeOrders.map(o => o.id))
+                    : '';
+                const modifyIdInput = document.getElementById("modifyId");
+                if (modifyIdInput) {
+                    modifyIdInput.value = latestActiveOrderId;
+                    // Optionally trigger change event if needed elsewhere, though likely not for prefill
+                    // modifyIdInput.dispatchEvent(new Event('change')); 
+                }
+                // --- End Auto-fill ---
+
+                document.getElementById("activeOrders").innerHTML = activeOrders
                     .map(o => {
                         const currentPrice = marketData[o.symbol]?.ltp || o.entryPrice;
                         const mtm = o.calculateMTM(currentPrice);
@@ -2641,8 +2950,7 @@
                         `;
                     }).join("");
 
-                document.getElementById("completedOrders").innerHTML = orders
-                    .filter(o => !o.active)
+                document.getElementById("completedOrders").innerHTML = completedOrders
                     .map(o => `
                         <div class="order-card completed">
                             <div class="order-header">
@@ -2958,27 +3266,47 @@
 
         // Initialization
         window.addEventListener('load', () => {
+            // Load Credentials
             const savedCreds = localStorage.getItem('ftCredentials');
             if (savedCreds) {
                 const { uid, jKey, telegramChatId } = JSON.parse(savedCreds);
                 document.getElementById('userId').value = uid;
                 document.getElementById('userToken').value = jKey;
                 document.getElementById('telegramChatId').value = telegramChatId;
-                
-                // Attempt to connect automatically if credentials are available
-                connectWS();
+                connectWS(); // Attempt auto-connect
             }
             selectExchange('NSE');
             startHistoricalDataRefresh();
             fetchOrderBook();
             
-            // Start Wake Lock and Audio to prevent background suspension
+            // Start Wake Lock and Audio
             startWakeLock();
             startSilentAudio();
             
             // Initialize Algo Trading System
             OrderSystem.init();
+
+            // --- Load Modify Order Radio Button Preferences --- 
+            const savedModifyTargetType = localStorage.getItem('modifyTargetTypePref') || 'percent';
+            const savedModifySLType = localStorage.getItem('modifySLTypePref') || 'percent';
+            document.querySelector(`input[name="modifyTargetType"][value="${savedModifyTargetType}"]`).checked = true;
+            document.querySelector(`input[name="modifySLType"][value="${savedModifySLType}"]`).checked = true;
+            // --- End Load Radio Button Prefs ---
         });
+
+        // --- Save Modify Order Radio Button Preferences on Change --- 
+        document.querySelectorAll('input[name="modifyTargetType"], input[name="modifySLType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    if (this.name === 'modifyTargetType') {
+                        localStorage.setItem('modifyTargetTypePref', this.value);
+                    } else if (this.name === 'modifySLType') {
+                        localStorage.setItem('modifySLTypePref', this.value);
+                    }
+                }
+            });
+        });
+        // --- End Save Radio Button Prefs ---
 
         window.addEventListener('beforeunload', stopHistoricalDataRefresh);
 
