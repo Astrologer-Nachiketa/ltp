@@ -481,6 +481,7 @@
             text-transform: uppercase;
             background-image: linear-gradient(45deg, #ff0000, #ff7300, #ffeb00, #47ff00, #00ffcc, #007bff, #d400ff);
             -webkit-background-clip: text;
+            background-clip: text; /* Add standard property */
             -webkit-text-fill-color: transparent;
             display: block;
             margin-top: -8px;
@@ -877,7 +878,11 @@
         .subscribe-btn { /* ... colors ... */ }
         .unsubscribe-btn { /* ... colors ... */ }
         .sell-btn { /* ... colors ... */ }
-        .refresh-btn { /* ... colors ... */ margin-bottom: 1px; }
+        .refresh-btn {
+            background: #6c757d;
+            color: white;
+            margin-bottom: 1px;
+        }
         .stop-trigger-btn {
             background-color: #ffc107; /* Warning yellow */
             color: #333;
@@ -1066,6 +1071,107 @@
          #dataBody td:nth-child(5) > *:last-child {
              margin-right: 0; /* No margin for the last element */
          }
+
+        /* TradingView Monitor Styles */
+        .input-toggle {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 4px 8px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container {
+            display: none;
+            position: fixed;
+            top: 35px; /* Adjusted top position slightly */
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px; /* Reduced padding */
+            border-radius: 6px; /* Slightly smaller radius */
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Reduced shadow */
+            z-index: 99;
+        }
+        .input-container.active {
+            display: block;
+        }
+        .input-container .input-group { /* More specific selector */
+            margin-bottom: 6px; /* Reduced margin */
+        }
+        .input-container input { /* More specific selector */
+            padding: 5px; /* Reduced padding */
+            width: 180px; /* Slightly reduced width */
+            border: 1px solid #ddd;
+            border-radius: 3px; /* Smaller radius */
+            font-size: 12px; /* Smaller font */
+        }
+        /* Avoid general button override if possible */
+        .input-container button {
+            padding: 6px 12px; /* Reduced padding */
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px; /* Smaller radius */
+            cursor: pointer;
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container button:hover {
+            background: #0056b3;
+        }
+        #results { /* Add margin-top to push table below fixed inputs */
+            /* margin-top: 65px; */ /* Adjust as needed based on input container height */
+            /* --- Make results fixed and scrollable --- */
+            position: fixed;
+            /* top: 115px; */      /* Position below input container (adjust as needed) */
+            top: 1px;        /* Position below input container */
+            /* left: 10px; */      /* Add some padding from the left edge */
+            /* right: 10px; */     /* Add some padding from the right edge */
+            right: 0;         /* Align to right edge */
+            /* bottom: 0; */    /* Position AT the bottom edge */
+            /* --- Auto width based on content --- */
+            width: max-content; /* Adjust width to content */
+            /* max-width: 95%; */     /* Prevent it from getting too wide */
+            max-width: 40%;      /* Limit width */
+            /* left: 50%; */          /* Center horizontally */
+            /* transform: translateX(-50%); */ /* Center horizontally */
+            /* --- End Auto width --- */
+            /* --- Auto height based on content --- */
+            height: max-content; /* Adjust height to content */
+            /* max-height: calc(100vh - 80px); */ /* Limit height (leave ~80px for top fixed elements) */
+            max-height: calc(100vh - 100px); /* Leave space top and bottom */
+            /* --- End Auto height --- */
+            overflow-y: auto; /* Allow vertical scrolling within the results div */
+            /* background: #fff; */ /* Remove background for transparency */
+            /* padding: 10px; */   /* Remove internal padding */
+            /* border: 1px solid #ddd; */ /* Remove border */
+            /* border-radius: 6px; */ /* Keep some rounding? */
+            /* box-shadow: 0 1px 5px rgba(0,0,0,0.1); */
+            z-index: 98;     /* Below inputs but above body */
+        }
+        #results table { /* More specific selector */
+            width: 100%;
+            border-collapse: collapse;
+            /* margin-top: 10px; */ /* No longer needed with padding in #results */
+            font-size: 8px; /* Smaller font for table */
+        }
+        #results th, #results td { /* More specific selector */
+            border: 1px solid #ddd;
+            padding: 5px; /* Reduced padding */
+            text-align: left;
+            position: sticky;
+            top: -1px; /* Stick to the very top of the scrollable #results */
+            z-index: 1; /* Ensure header stays above table content */
+            /* Adjust based on other fixed elements if necessary */
+            font-weight: 600; /* Ensure header is bold */
+        }
+        #results th { /* More specific selector */
+            background-color: #f8f9fa;
+        }
+        #results .highlight { /* More specific selector */
+            background-color: #fff3cd;
+        }
     </style>
 </head>
 <body>
@@ -1374,6 +1480,22 @@
             </div>
         </div>
     </div>
+
+    <!-- TradingView Monitor HTML -->
+    <button class="input-toggle" onclick="toggleInputs()">Show Inputs</button>
+    <div class="input-container">
+        <div class="input-group">
+            <input type="text" id="tvSymbols" placeholder="Symbols (RELIANCE,HDFC-BANK)">
+        </div>
+        <div class="input-group">
+            <input type="text" id="tvColumns" placeholder="Columns (close,RSI14)">
+        </div>
+        <div class="input-group">
+            <input type="text" id="tvCondition" placeholder="Condition (e.g., RSI>50 AND MACD<0)">
+        </div>
+    </div>
+    <div id="results"></div>
+    <!-- End TradingView Monitor HTML -->
 
     <div class="broker-status" id="brokerStatus">
         Broker Connection: <span id="brokerConnectionStatus" class="loss-badge">Disconnected</span>
@@ -3390,7 +3512,7 @@
         });
 
         function playBeep() {
-            const beep = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBkCU1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTqO0vHRgDMGHm7A7+OZRA0PVqzn77BdGQlBmd3xwnQnBSF8yu7ilEELElyx6OyrWBUIQ5fc8cZ4KwUda77t5ZxHDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryynkrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKeSwFH23F7uOZRQwPV67n7q5bGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp5KwUfbcXu45lFDA9XrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryyncrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAc=");
+            const beep = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBkCU1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTqO0vHRgDMGHm7A7+OZRA0PVqzn77BdGQlBmd3xwnQnBSF8yu7ilEELElyx6OyrWBUIQ5fc8cZ4KwUda77t5ZxHDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAdAltryxHgsBRxqwO3mnUcODFOp5vC1Yh0HPZXa8sp3KgUgb8Tu5JdEDBBYrufurlsYB0CW2vLEeCwFHGrA7eadRw4MU6nm8LViHQc9ldryynkrBR9txe7jmUUMD1eu5+6uWxgHQJba8sR4LAUcasDt5p1HDgxTqebwtWIdBz2V2vLKdyoFIG/E7uSXRAwQWK7n7q5aGAc=");
             beep.volume = 1.0; // Maximum volume
             beep.play();
         }
@@ -3510,6 +3632,150 @@
                 });
             }
         }
+
+        // --- TradingView Monitor Script --- 
+        // Load saved values
+        document.getElementById('tvSymbols').value = localStorage.getItem('tvSymbols') || '';
+        document.getElementById('tvColumns').value = localStorage.getItem('tvColumns') || '';
+        document.getElementById('tvCondition').value = localStorage.getItem('tvCondition') || '';
+
+        // Toggle input visibility
+        function toggleInputs() {
+            const container = document.querySelector('.input-container');
+            const button = document.querySelector('.input-toggle');
+            const isActive = container.classList.toggle('active');
+            button.textContent = isActive ? 'Hide Inputs' : 'Show Inputs';
+        }
+
+        // Save values on input
+        document.getElementById('tvSymbols').addEventListener('input', e => {
+            localStorage.setItem('tvSymbols', e.target.value);
+        });
+        document.getElementById('tvColumns').addEventListener('input', e => {
+            localStorage.setItem('tvColumns', e.target.value);
+        });
+        document.getElementById('tvCondition').addEventListener('input', e => {
+            localStorage.setItem('tvCondition', e.target.value);
+        });
+
+        function evaluateCondition(rowData, condition) {
+            try {
+                const replacements = {};
+                const columns = document.getElementById('tvColumns').value.split(',').map(c => c.trim());
+                
+                // Create safe replacement pattern
+                columns.forEach((col, index) => {
+                    const value = rowData[index];
+                    // Ensure column names are valid JS identifiers for the Function constructor
+                    const safeCol = col.replace(/[^a-zA-Z0-9_$]/g, '_'); 
+                    replacements[safeCol] = typeof value === 'number' ? value : `'${String(value).replace(/'/g, "\'")}'`; // Escape single quotes in string values
+                });
+
+                // Replace column names with placeholders first to avoid partial replacements
+                let expr = condition;
+                columns.forEach((col) => {
+                    const safeCol = col.replace(/[^a-zA-Z0-9_$]/g, '_');
+                    const regex = new RegExp(`\\b${col}\\b`, 'gi'); // Case-insensitive match for column name
+                    expr = expr.replace(regex, `__VAL_${safeCol}__`);
+                });
+                
+                // Replace logical operators
+                expr = expr.replace(/AND/gi, '&&')
+                           .replace(/OR/gi, '||')
+                           .replace(/NOT/gi, '!');
+
+                // Now replace placeholders with actual values
+                Object.keys(replacements).forEach(safeCol => {
+                    const placeholderRegex = new RegExp(`__VAL_${safeCol}__`, 'g');
+                    expr = expr.replace(placeholderRegex, replacements[safeCol]);
+                });
+
+                console.log("Evaluating expression:", expr); // Debug log
+                // Evaluate safely
+                return new Function(`return ${expr}`)();
+            } catch(e) {
+                console.error('Condition evaluation error:', e, 'Original Condition:', condition, 'Generated Expression:', expr);
+                return false;
+            }
+        }
+
+
+        async function fetchTvData() { // Renamed to avoid conflict
+            const symbolsInput = document.getElementById('tvSymbols').value;
+            const columnsInput = document.getElementById('tvColumns').value;
+            const condition = document.getElementById('tvCondition').value.trim();
+            
+            const symbols = symbolsInput.split(',') 
+                .map(s => `NSE:${s.trim().toUpperCase().replace(/-/g, '_')}`) // Ensure uppercase and replace dash
+                .filter(s => s.length > 4); // Basic check for valid format
+            const columns = columnsInput.split(',').map(c => c.trim()).filter(c => c);
+            
+            if (!symbols.length || !columns.length) {
+                 document.getElementById('results').innerHTML = symbols.length ? 'Please specify columns.' : 'Please specify symbols.';
+                 return;
+             }
+
+            console.log('Fetching TV data for symbols:', symbols, 'columns:', columns); // Debug log
+
+            try {
+                const response = await fetch('https://scanner.tradingview.com/global/scan', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        columns: columns,
+                        symbols: { tickers: symbols },
+                        range: [0, symbols.length + 5] // Fetch slightly more just in case
+                    })
+                });
+                
+                if (!response.ok) {
+                   throw new Error(`TradingView API error: ${response.status} ${response.statusText}`);
+                 }
+                
+                const data = await response.json();
+                console.log('TV Data Received:', data); // Debug log
+
+                if (!data || !data.data) {
+                  throw new Error('Invalid data format received from TradingView');
+                }
+
+                let tableHtml = '<table><thead><tr><th>Symbol</th>' + 
+                              columns.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+                
+                if (data.data.length === 0) {
+                   tableHtml += '<tr><td colspan="' + (columns.length + 1) + '">No data returned for the specified symbols. Check symbol names.</td></tr>';
+                 } else {
+                   data.data.forEach(item => {
+                       // Ensure item.s exists and is a string before splitting
+                       const symbol = item.s && typeof item.s === 'string' 
+                           ? item.s.split(':')[1].replace(/_/g, '-') 
+                           : 'Unknown Symbol'; 
+                       
+                       // Ensure item.d exists and is an array
+                       const rowData = Array.isArray(item.d) ? item.d : [];
+                       const highlight = condition ? evaluateCondition(rowData, condition) : false;
+                       
+                       tableHtml += `<tr${highlight ? ' class="highlight"' : ''}><td>${symbol}</td>${
+                           // Map data columns, ensuring the correct number of cells
+                           columns.map((_, index) => {
+                               const value = rowData[index];
+                               return `<td>${(typeof value === 'number' && !isNaN(value)) ? value.toFixed(2) : (value ?? 'N/A')}</td>`;
+                           }).join('')
+                       }</tr>`;
+                   });
+                 }
+                
+                document.getElementById('results').innerHTML = tableHtml + '</tbody></table>';
+            } catch(e) {
+                console.error('Error fetching or processing TradingView data:', e);
+                document.getElementById('results').innerHTML = `<div class="error">Error fetching data: ${e.message}. Check console for details.</div>`;
+            }
+        }
+
+        // Initial fetch and refresh every 5 seconds (reduced frequency)
+        fetchTvData(); // Changed function name
+        setInterval(fetchTvData, 5000); // Changed function name and interval
+        // --- End TradingView Monitor Script ---
+
     </script>
 </body>
 </html>
