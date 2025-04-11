@@ -1418,6 +1418,21 @@
                         </div>
                         <!-- End Second Trigger Set -->
 
+                        <!-- Start TV Condition Check -->
+                        <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND TradingView Condition (Optional)</h4>
+                        <div class="input-group">
+                             <label class="algo-label" for="requireTvCondition">Require TV Condition?</label>
+                             <input type="checkbox" id="requireTvCondition" style="margin-left: 5px;">
+                        </div>
+                        <div class="input-group">
+                             <label class="algo-label" for="tvConditionSymbolSelect">TV Symbol to Check</label>
+                             <select id="tvConditionSymbolSelect" class="algo-select">
+                                 <option value="">-- Select TV Symbol --</option>
+                                 <!-- Options populated dynamically -->
+                             </select>
+                        </div>
+                        <!-- End TV Condition Check -->
+
                 <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
             </div>
                 </div> <!-- End Left Column -->
@@ -1518,6 +1533,9 @@
         
         // Keep track of the Wake Lock reference
         let wakeLock = null;
+
+        // Map to store TradingView highlight status (Symbol -> Boolean)
+        let tvHighlightStatus = new Map();
 
         // Add these variables at the top with your other global variables
         let activeCheckIntervals = new Map(); // Store all active intervals
@@ -2934,23 +2952,42 @@
                         // Evaluate using the trigger's params and the UPDATED script data (which IS the correct data for this symbol)
                         const result1 = evaluateSingleTrigger(params.triggerType, params.triggerValueSource, params.triggerValue, updatedScriptData);
                         let trigger1Met = result1.met;
+                        debugLog(`#${triggerId} Trigger 1 (${params.triggerType}): Met = ${trigger1Met}`, 'info');
 
                         // Evaluate Trigger 2 (if active), also using the updatedScriptData
                         let trigger2Met = true;
                         if (params.triggerType2 !== 'no_trigger') {
                             const result2 = evaluateSingleTrigger(params.triggerType2, params.triggerValueSource2, params.triggerValue2, updatedScriptData);
                             trigger2Met = result2.met;
+                            debugLog(`#${triggerId} Trigger 2 (${params.triggerType2}): Met = ${trigger2Met}`, 'info');
                         }
 
-                        // Check AND condition
-                        let allConditionsMet = trigger1Met && trigger2Met;
+                        // --- Start TV Condition Check --- 
+                        let tvConditionMet = true; // Default to true if not required
+                        if (params.requireTvCondition) {
+                            const tvSymbolToCheck = params.tvConditionSymbol;
+                            if (tvSymbolToCheck) {
+                                // Check the global map for the highlight status
+                                tvConditionMet = tvHighlightStatus.get(tvSymbolToCheck) === true;
+                                debugLog(`#${triggerId} TV Condition Check (Required): Symbol=${tvSymbolToCheck}, Status=${tvHighlightStatus.get(tvSymbolToCheck)}, Met = ${tvConditionMet}`, 'info');
+                            } else {
+                                tvConditionMet = false; // If required but no symbol selected, condition fails
+                                debugLog(`#${triggerId} TV Condition Check (Required): No TV Symbol selected, Met = false`, 'warn');
+                            }
+                        } else {
+                             debugLog(`#${triggerId} TV Condition Check: Not Required`, 'info');
+                        }
+                        // --- End TV Condition Check ---
+
+                        // Check AND condition (Primary Triggers AND TV Condition)
+                        let allConditionsMet = trigger1Met && trigger2Met && tvConditionMet;
 
                         if (allConditionsMet) {
-                            debugLog(`✅ Conditions MET for pending trigger #${triggerId} (${params.symbol})!`, 'log');
+                            debugLog(`✅ All Conditions MET for pending trigger #${triggerId} (${params.symbol})! Executing...`, 'success');
                             executePendingTrigger(triggerId);
                         } else {
                             // Log that conditions were checked but not met for this specific trigger
-                            debugLog(`Conditions not met for #${triggerId} (${params.symbol}).`, 'info');
+                            debugLog(`Conditions not met for #${triggerId} (${params.symbol}). Primary Met: ${trigger1Met && trigger2Met}, TV Met: ${tvConditionMet}`, 'info');
                         }
                     }
                     // Else: The market update was for a different symbol, so ignore this trigger for this update.
@@ -3243,7 +3280,9 @@
                             triggerValueSource: document.getElementById("algoTriggerValueSource").value,
                             triggerType2: document.getElementById("algoTriggerType2").value,
                             triggerValue2: parseFloat(document.getElementById("algoTriggerValue2").value),
-                            triggerValueSource2: document.getElementById("algoTriggerValueSource2").value
+                            triggerValueSource2: document.getElementById("algoTriggerValueSource2").value,
+                            requireTvCondition: document.getElementById("requireTvCondition").checked,
+                            tvConditionSymbol: document.getElementById("tvConditionSymbolSelect").value
                         };
 
                         // --- If no trigger is set, place order immediately --- 
@@ -3472,6 +3511,9 @@
             // Initialize Algo Trading System
             OrderSystem.init();
 
+            // Populate TV Symbol Dropdown initially
+            updateTvConditionSymbolDropdown();
+
             // --- Load Modify Order Radio Button Preferences --- 
             const savedModifyTargetType = localStorage.getItem('modifyTargetTypePref') || 'percent';
             const savedModifySLType = localStorage.getItem('modifySLTypePref') || 'percent';
@@ -3493,6 +3535,9 @@
             });
         });
         // --- End Save Radio Button Prefs ---
+
+        // --- Add event listener to update TV symbol dropdown when TV symbols input changes ---
+        document.getElementById('tvSymbols').addEventListener('input', updateTvConditionSymbolDropdown);
 
         window.addEventListener('beforeunload', stopHistoricalDataRefresh);
 
@@ -3724,14 +3769,19 @@
                  } else {
                    data.data.forEach(item => {
                        // Ensure item.s exists and is a string before splitting
-                       const symbol = item.s && typeof item.s === 'string' 
+                       const symbol = (item.s && typeof item.s === 'string' 
                            ? item.s.split(':')[1].replace(/_/g, '-') 
-                           : 'Unknown Symbol'; 
+                           : 'Unknown Symbol').toUpperCase(); // Ensure uppercase key
                        
                        // Ensure item.d exists and is an array
                        const rowData = Array.isArray(item.d) ? item.d : [];
                        const highlight = condition ? evaluateCondition(rowData, condition) : false;
                        
+                       // --- Update TV Highlight Status Map ---
+                       tvHighlightStatus.set(symbol, highlight);
+                       console.log(`[TV Monitor] Set status for ${symbol}: ${highlight}`); // <-- ADDED DEBUG LOG
+                       // --- End Update ---
+
                        tableHtml += `<tr${highlight ? ' class="highlight"' : ''}><td>${symbol}</td>${
                            // Map data columns, ensuring the correct number of cells
                            columns.map((_, index) => {
@@ -3753,6 +3803,38 @@
         fetchTvData(); // Changed function name
         setInterval(fetchTvData, 5000); // Changed function name and interval
         // --- End TradingView Monitor Script ---
+
+        // --- Function to populate TV Symbol Dropdown in Algo Tab ---
+        function updateTvConditionSymbolDropdown() {
+            const tvSymbolsInput = document.getElementById('tvSymbols');
+            const tvConditionSelect = document.getElementById('tvConditionSymbolSelect');
+            const currentSelectedValue = tvConditionSelect.value; // Preserve selection if possible
+
+            if (!tvSymbolsInput || !tvConditionSelect) return; // Exit if elements not found
+
+            const symbols = tvSymbolsInput.value.split(',')
+                .map(s => s.trim().toUpperCase())
+                .filter(s => s); // Get unique, non-empty symbols
+
+            // Clear existing options except the default
+            while (tvConditionSelect.options.length > 1) {
+                tvConditionSelect.remove(1);
+            }
+
+            // Add new options
+            new Set(symbols).forEach(symbol => { // Use Set to ensure unique symbols
+                const option = document.createElement('option');
+                option.value = symbol;
+                option.textContent = symbol;
+                tvConditionSelect.appendChild(option);
+            });
+            
+            // Restore previous selection if it still exists
+            if (Array.from(tvConditionSelect.options).some(opt => opt.value === currentSelectedValue)) {
+                 tvConditionSelect.value = currentSelectedValue;
+             }
+        }
+        // --- End TV Symbol Dropdown Function ---
 
     </script>
 </body>
