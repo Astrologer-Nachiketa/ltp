@@ -3660,41 +3660,19 @@
 
         function evaluateCondition(rowData, condition) {
             try {
-                const replacements = {};
-                const columns = document.getElementById('tvColumns').value.split(',').map(c => c.trim());
-                
-                // Create safe replacement pattern
-                columns.forEach((col, index) => {
-                    const value = rowData[index];
-                    // Ensure column names are valid JS identifiers for the Function constructor
-                    const safeCol = col.replace(/[^a-zA-Z0-9_$]/g, '_'); 
-                    replacements[safeCol] = typeof value === 'number' ? value : `'${String(value).replace(/'/g, "\'")}'`; // Escape single quotes in string values
-                });
+                // Replace C1 with rowData[0], C2 with rowData[1], etc.
+                const expr = condition
+                    .replace(/C(\d+)/g, (_, num) => {
+                        const index = parseInt(num) - 1;
+                        return rowData[index] !== undefined ? rowData[index] : 'null';
+                    })
+                    .replace(/AND/gi, '&&')
+                    .replace(/OR/gi, '||')
+                    .replace(/NOT/gi, '!');
 
-                // Replace column names with placeholders first to avoid partial replacements
-                let expr = condition;
-                columns.forEach((col) => {
-                    const safeCol = col.replace(/[^a-zA-Z0-9_$]/g, '_');
-                    const regex = new RegExp(`\\b${col}\\b`, 'gi'); // Case-insensitive match for column name
-                    expr = expr.replace(regex, `__VAL_${safeCol}__`);
-                });
-                
-                // Replace logical operators
-                expr = expr.replace(/AND/gi, '&&')
-                           .replace(/OR/gi, '||')
-                           .replace(/NOT/gi, '!');
-
-                // Now replace placeholders with actual values
-                Object.keys(replacements).forEach(safeCol => {
-                    const placeholderRegex = new RegExp(`__VAL_${safeCol}__`, 'g');
-                    expr = expr.replace(placeholderRegex, replacements[safeCol]);
-                });
-
-                console.log("Evaluating expression:", expr); // Debug log
-                // Evaluate safely
                 return new Function(`return ${expr}`)();
             } catch(e) {
-                console.error('Condition evaluation error:', e, 'Original Condition:', condition, 'Generated Expression:', expr);
+                console.error('Condition error:', e);
                 return false;
             }
         }
