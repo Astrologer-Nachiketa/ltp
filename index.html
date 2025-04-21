@@ -861,8 +861,8 @@
             margin-bottom: 4px; /* Reduced */
             font-size: 13px; /* Smaller font */
         }
-        .success { /* ... colors ... */ }
-        .error { /* ... colors ... */ }
+        /* .success { ... colors ... } */ /* Removed empty ruleset */
+        /* .error { ... colors ... } */ /* Removed empty ruleset */
 
         /* General Button Styles */
         button {
@@ -875,9 +875,9 @@
             transition: background 0.2s ease;
             vertical-align: middle; /* Align buttons */
         }
-        .subscribe-btn { /* ... colors ... */ }
-        .unsubscribe-btn { /* ... colors ... */ }
-        .sell-btn { /* ... colors ... */ }
+        /* .subscribe-btn { ... colors ... } */ /* Removed empty ruleset */
+        /* .unsubscribe-btn { ... colors ... } */ /* Removed empty ruleset */
+        /* .sell-btn { ... colors ... } */ /* Removed empty ruleset */
         .refresh-btn {
             background: #6c757d;
             color: white;
@@ -889,7 +889,7 @@
             padding: 4px 8px; /* Reduced */
             font-size: 12px; /* Smaller */
         }
-        .stop-trigger-btn:disabled { /* ... styles ... */ }
+        /* .stop-trigger-btn:disabled { ... styles ... } */ /* Removed empty ruleset */
 
         /* Algo Trading Tab Styles */
         .tab-bar {
@@ -902,7 +902,7 @@
             /* ... other styles ... */
             font-size: 13px; /* Smaller font */
         }
-        .tab-btn.active { /* ... styles ... */ }
+        /* .tab-btn.active { ... styles ... } */ /* Removed empty ruleset */
 
         .algo-section {
             background: white;
@@ -947,7 +947,7 @@
             font-size: 13px; /* Smaller font */
             margin-top: 5px; /* Add small top margin */
         }
-        .primary-btn { /* ... colors ... */ }
+        /* .primary-btn { ... colors ... } */ /* Removed empty ruleset */
 
         /* Algo Price/Radio Groups */
         .price-input-group {
@@ -1000,12 +1000,7 @@
             font-weight: bold;
             margin-left: 4px; /* Add space before badge */
         }
-        .exit-btn {
-            /* ... positioning ... */
-            padding: 2px 6px; /* Reduced padding */
-            font-size: 11px; /* Smaller font */
-            border-radius: 3px; /* Smaller */
-        }
+        /* .exit-btn { ... positioning ... } */ /* Removed empty ruleset */
         .order-details-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Responsive columns */
@@ -1066,7 +1061,7 @@
          #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
          #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
          #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
-         #dataBody td:nth-child(5) .arm-trigger { /* No fixed width needed */ }
+         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
 
          #dataBody td:nth-child(5) > *:last-child {
              margin-right: 0; /* No margin for the last element */
@@ -1185,6 +1180,7 @@
         <input type="text" id="userId" class="cred-input" placeholder="User ID">
         <input type="password" id="userToken" class="cred-input" placeholder="fill token Key from Green Generate token button">
         <input type="text" id="telegramChatId" class="cred-input" placeholder="Telegram Chat ID">
+        <input type="text" id="signalUrlInput" class="cred-input" placeholder="Signal URL (Optional)"> <!-- Added Signal URL Input -->
         <button onclick="saveCredentials()">Save Credentials</button>
         <a href="https://script.google.com/macros/s/AKfycbwenpl5VSzLTWFZam9hsQUo5TJApl_Ej7Db5KKg07LQSDa95xSrOlq9E7kL4o0wskxvDQ/exec" 
            target="_blank" 
@@ -1432,6 +1428,21 @@
                              </select>
                         </div>
                         <!-- End TV Condition Check -->
+                         <!-- Start Signal Condition Check -->
+                         <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Signal Condition (Optional)</h4>
+                         <div class="input-group">
+                             <label class="algo-label" for="requireSignalCondition">Require Signal Condition?</label>
+                             <input type="checkbox" id="requireSignalCondition" style="margin-left: 5px;">
+                         </div>
+                         <div class="input-group">
+                             <label class="algo-label" for="signalTriggerSelect">Signal Trigger to Check</label>
+                             <select id="signalTriggerSelect" class="algo-select">
+                                 <option value="">-- Select Signal --</option>
+                                 <option value="callentry">Call Entry</option>
+                                 <option value="putentry">Put Entry</option>
+                             </select>
+                         </div>
+                         <!-- End Signal Condition Check -->
 
                 <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
             </div>
@@ -1537,6 +1548,61 @@
         // Map to store TradingView highlight status (Symbol -> Boolean)
         let tvHighlightStatus = new Map();
 
+        // --- Signal Trigger Integration ---
+        // const SIGNAL_URL = "https://script.google.com/macros/s/AKfycbzG3Icy3X6_FifDQBmGZjP1CGVct4CN2GrboMqDjIvWH18jwPquxAzK8GuEoWMJinojjA/exec"; // No longer hardcoded
+        let signalTriggerActive = false; // Holds the latest signal status matching the selection
+        let latestFetchedSignal = null; // Stores the raw signal from the fetch
+
+        async function fetchSignalAndCheckTrigger() {
+            const requireSignal = document.getElementById('requireSignalCondition')?.checked ?? false; // Check if element exists
+            const selectedSignal = document.getElementById('signalTriggerSelect')?.value ?? ''; // Check if element exists
+
+            // Get the signal URL from credentials
+            const credentials = getCredentials();
+            const signalUrl = credentials.signalUrl;
+
+            // If no URL is provided, don't fetch
+            if (!signalUrl) {
+                latestFetchedSignal = null; // Reset signal status
+                signalTriggerActive = false;
+                OrderSystem.debugLog('Signal check skipped: No Signal URL provided in credentials.', 'warn');
+                // Update active status based on requirements
+                signalTriggerActive = !requireSignal; // If required, it's false; if not required, it's true (doesn't block)
+                return; // Exit early
+            }
+
+            // Store the latest fetched signal regardless of requirement
+            try {
+                const resp = await fetch(signalUrl, { cache: "no-store" }); // Use dynamic URL
+                const data = await resp.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    latestFetchedSignal = data[0]?.signal?.toLowerCase() ?? null;
+                    // Debug log for fetched signal
+                    OrderSystem.debugLog(`Fetched Signal: ${latestFetchedSignal}`, 'info');
+                } else {
+                    latestFetchedSignal = null; // Reset if no valid data
+                }
+            } catch (e) {
+                console.error('Signal fetch error:', e);
+                latestFetchedSignal = null; // Reset on error
+                 OrderSystem.debugLog(`Signal fetch error: ${e.message}`, 'error');
+            }
+
+            // Determine if the *required* signal is currently active
+            signalTriggerActive = false; // Reset before check
+            if (requireSignal && selectedSignal && latestFetchedSignal === selectedSignal) {
+                signalTriggerActive = true;
+            }
+            // Debug log for trigger active status
+            OrderSystem.debugLog(`Signal Trigger Active (Required: ${requireSignal}, Selected: ${selectedSignal}, Fetched: ${latestFetchedSignal}): ${signalTriggerActive}`, 'info');
+
+            // Check pending triggers *after* updating signal status
+            // No, checking triggers here is inefficient. Let the LTP update handle it.
+        }
+        // --- End Signal Trigger Integration ---
+
+
         // Add these variables at the top with your other global variables
         let activeCheckIntervals = new Map(); // Store all active intervals
         let isStoppingTriggers = false; // Flag to prevent new triggers while stopping
@@ -1577,7 +1643,8 @@
             const credentials = {
                 uid: document.getElementById('userId').value.trim(),
                 jKey: document.getElementById('userToken').value.trim(),
-                telegramChatId: document.getElementById('telegramChatId').value.trim()
+                telegramChatId: document.getElementById('telegramChatId').value.trim(),
+                signalUrl: document.getElementById('signalUrlInput').value.trim() // Save Signal URL
             };
             localStorage.setItem('ftCredentials', JSON.stringify(credentials));
             alert('Credentials saved!');
@@ -1588,7 +1655,8 @@
             return {
                 uid: document.getElementById('userId').value.trim() || savedCreds.uid,
                 jKey: document.getElementById('userToken').value.trim() || savedCreds.jKey,
-                telegramChatId: document.getElementById('telegramChatId').value.trim() || savedCreds.telegramChatId
+                telegramChatId: document.getElementById('telegramChatId').value.trim() || savedCreds.telegramChatId,
+                signalUrl: document.getElementById('signalUrlInput').value.trim() || savedCreds.signalUrl || '' // Retrieve Signal URL, default to empty string
             };
         }
 
@@ -2979,15 +3047,32 @@
                         }
                         // --- End TV Condition Check ---
 
-                        // Check AND condition (Primary Triggers AND TV Condition)
-                        let allConditionsMet = trigger1Met && trigger2Met && tvConditionMet;
+                        // --- Start Signal Condition Check ---
+                        let signalConditionMet = true; // Default to true if not required
+                        if (params.requireSignalCondition) {
+                            const requiredSignal = params.selectedSignal;
+                            if (requiredSignal) {
+                                // Check the global variables updated by fetchSignalAndCheckTrigger
+                                signalConditionMet = (latestFetchedSignal === requiredSignal);
+                                debugLog(`#${triggerId} Signal Condition Check (Required): Selected=${requiredSignal}, Latest Fetched=${latestFetchedSignal}, Met = ${signalConditionMet}`, 'info');
+                            } else {
+                                signalConditionMet = false; // If required but no signal selected, condition fails
+                                debugLog(`#${triggerId} Signal Condition Check (Required): No Signal selected, Met = false`, 'warn');
+                            }
+                        } else {
+                             debugLog(`#${triggerId} Signal Condition Check: Not Required`, 'info');
+                        }
+                        // --- End Signal Condition Check ---
+
+                        // Check AND condition (Primary Triggers AND TV Condition AND Signal Condition)
+                        let allConditionsMet = trigger1Met && trigger2Met && tvConditionMet && signalConditionMet;
 
                         if (allConditionsMet) {
                             debugLog(`✅ All Conditions MET for pending trigger #${triggerId} (${params.symbol})! Executing...`, 'success');
                             executePendingTrigger(triggerId);
                         } else {
                             // Log that conditions were checked but not met for this specific trigger
-                            debugLog(`Conditions not met for #${triggerId} (${params.symbol}). Primary Met: ${trigger1Met && trigger2Met}, TV Met: ${tvConditionMet}`, 'info');
+                            debugLog(`Conditions not met for #${triggerId} (${params.symbol}). Primary Met: ${trigger1Met && trigger2Met}, TV Met: ${tvConditionMet}, Signal Met: ${signalConditionMet}`, 'info');
                         }
                     }
                     // Else: The market update was for a different symbol, so ignore this trigger for this update.
@@ -3282,7 +3367,9 @@
                             triggerValue2: parseFloat(document.getElementById("algoTriggerValue2").value),
                             triggerValueSource2: document.getElementById("algoTriggerValueSource2").value,
                             requireTvCondition: document.getElementById("requireTvCondition").checked,
-                            tvConditionSymbol: document.getElementById("tvConditionSymbolSelect").value
+                            tvConditionSymbol: document.getElementById("tvConditionSymbolSelect").value,
+                            requireSignalCondition: document.getElementById("requireSignalCondition").checked, // Add this
+                            selectedSignal: document.getElementById("signalTriggerSelect").value // Add this
                         };
 
                         // --- If no trigger is set, place order immediately --- 
@@ -3485,7 +3572,9 @@
                 },
 
                 // Expose the trigger checking function
-                checkPendingTriggersForSymbol: checkPendingTriggersForSymbol 
+                checkPendingTriggersForSymbol: checkPendingTriggersForSymbol,
+                // Expose debugLog publicly
+                debugLog: debugLog
             };
         })();
 
@@ -3494,10 +3583,11 @@
             // Load Credentials
             const savedCreds = localStorage.getItem('ftCredentials');
             if (savedCreds) {
-                const { uid, jKey, telegramChatId } = JSON.parse(savedCreds);
-                document.getElementById('userId').value = uid;
-                document.getElementById('userToken').value = jKey;
-                document.getElementById('telegramChatId').value = telegramChatId;
+                const { uid, jKey, telegramChatId, signalUrl } = JSON.parse(savedCreds);
+                document.getElementById('userId').value = uid || '';
+                document.getElementById('userToken').value = jKey || '';
+                document.getElementById('telegramChatId').value = telegramChatId || '';
+                document.getElementById('signalUrlInput').value = signalUrl || ''; // Load Signal URL
                 connectWS(); // Attempt auto-connect
             }
             selectExchange('NSE');
@@ -3835,6 +3925,11 @@
              }
         }
         // --- End TV Symbol Dropdown Function ---
+
+        // Fetch signal initially and then set interval
+        fetchSignalAndCheckTrigger();
+        setInterval(fetchSignalAndCheckTrigger, 5000); // Check every 5 seconds
+        // --- End Signal Trigger Integration ---
 
     </script>
 </body>
