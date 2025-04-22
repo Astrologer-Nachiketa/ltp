@@ -983,27 +983,6 @@
              font-size: 1em !important; /* Consistent size */
         }
 
-        /* Container for side-by-side conditions */
-        .conditions-container {
-            display: flex;
-            gap: 15px; /* Adjust gap between the two condition blocks */
-            margin-top: 15px; /* Add some space above this section */
-            align-items: flex-start; /* Align items to the top */
-        }
-
-        /* Styling for individual condition groups (TV & Signal) */
-        .condition-group {
-            flex: 1; /* Make each group take up equal space */
-        }
-
-        /* Adjust heading margin within the groups */
-        .condition-group h4 {
-            margin-top: 0 !important; /* Override existing margin */
-            padding-top: 0 !important; /* Override existing padding */
-            border-top: none !important; /* Remove the top border */
-            margin-bottom: 10px !important; /* Space below heading */
-        }
-
         /* Algo Order Cards */
         .order-card {
             padding: 6px 8px; /* Reduced padding */
@@ -1188,6 +1167,68 @@
         #results .highlight { /* More specific selector */
             background-color: #fff3cd;
         }
+
+        /* Container for side-by-side conditions (3 columns) */
+        .multi-conditions-container {
+            display: flex;
+            gap: 15px; /* Adjust gap between the three condition blocks */
+            margin-top: 15px; /* Add some space above this section */
+            align-items: flex-start; /* Align items to the top */
+            border-top: 1px solid #eee; /* Add separator line above */
+            padding-top: 10px; /* Space below the separator line */
+        }
+
+        /* Styling for individual condition groups (Trigger2, TV & Signal) */
+        .condition-group {
+            flex: 1; /* Make each group take up equal space */
+            /* Optional: Add border for visual separation during testing */
+            /* border: 1px dashed #ccc; */
+            /* padding: 5px; */
+        }
+
+        /* Adjust heading margin/style within the groups */
+        .condition-group h4 {
+            margin-top: 0 !important; /* Override existing margin */
+            padding-top: 0 !important; /* Override existing padding */
+            border-top: none !important; /* Remove the top border from original style */
+            margin-bottom: 10px !important; /* Space below heading */
+            font-size: 1em !important; /* Keep heading size consistent */
+        }
+
+        /* Optional: Adjust checkbox alignment if needed */
+        .condition-group input[type="checkbox"] {
+             margin-top: 5px; /* Align checkbox slightly better */
+        }
+
+        /* Ensure labels and inputs within the groups align well */
+        .condition-group .input-group .algo-label {
+            /* Adjust width if needed, maybe make it slightly smaller */
+             width: 80px;
+        }
+        .condition-group .input-group .algo-select,
+        .condition-group .input-group .algo-input {
+             /* Ensure they grow to fill remaining space */
+             flex-grow: 1;
+        }
+
+        /* Trigger cell in main table - Refined */
+        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
+            white-space: nowrap; /* Prevent wrapping within the cell */
+        }
+        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
+            display: inline-block; /* Keep elements inline */
+            vertical-align: middle; /* Align them vertically */
+            margin-right: 4px; /* Consistent spacing */
+            margin-bottom: 2px; /* Small bottom margin if they wrap */
+        }
+         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
+         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
+
+         #dataBody td:nth-child(5) > *:last-child {
+             margin-right: 0; /* No margin for the last element */
+         }
     </style>
 </head>
 <body>
@@ -1404,74 +1445,75 @@
                 </div>
                 
                         <!-- Add Second Trigger Set -->
-                        <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Second Trigger Condition (Optional)</h4>
-                        <div class="input-group">
-                            <label class="algo-label">Trigger 2 Type</label>
-                            <select id="algoTriggerType2" class="algo-select">
-                                <option value="no_trigger">No Trigger</option>
-                                <option value="buy_above">Buy Above</option>
-                                <option value="buy_below">Buy Below</option>
-                                <option value="sell_above">Sell Above</option>
-                                <option value="sell_below">Sell Below</option>
-                                <option value="buy_green_ltp_lt_sma">LTP &gt; High && LTP &gt; EMA &gt; SMA</option>
-                                <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
-                            </select>
-                        </div>
+                        <!-- NEW Container for the THREE condition columns -->
+                        <div class="multi-conditions-container">
 
-                        <div class="input-group">
-                            <label class="algo-label">Trigger 2 Source</label>
-                            <select id="algoTriggerValueSource2" class="algo-select">
-                                <option value="fixed">Fixed Value</option>
-                                <option value="ema">EMA (60)</option>
-                                <option value="sma">SMA (60)</option>
-                                <option value="hist_high">Hist. High</option>
-                                <option value="hist_low">Hist. Low</option>
-                            </select>
-                        </div>
-
-                        <div class="input-group">
-                            <label class="algo-label">Trigger 2 Value</label>
-                            <input type="number" id="algoTriggerValue2" class="algo-input" step="0.01" placeholder="Enter trigger 2 value">
-                        </div>
-                        <!-- End Second Trigger Set -->
-
-                        <!-- NEW Container for TV and Signal Conditions -->
-                        <div class="conditions-container">
-
-                            <!-- Left Column for TV Condition -->
-                            <div class="condition-group tv-condition">
-                                <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND TradingView Condition (Optional)</h4>
+                            <!-- Column 1: Second Trigger -->
+                            <div class="condition-group second-trigger">
+                                <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Second Trigger (Optional)</h4>
                                 <div class="input-group">
-                                     <label class="algo-label" for="requireTvCondition">Require TV Condition?</label>
+                                    <label class="algo-label">Trigger 2 Type</label>
+                                    <select id="algoTriggerType2" class="algo-select">
+                                        <option value="no_trigger">No Trigger</option>
+                                        <option value="buy_above">Buy Above</option>
+                                        <option value="buy_below">Buy Below</option>
+                                        <option value="sell_above">Sell Above</option>
+                                        <option value="sell_below">Sell Below</option>
+                                        <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
+                                        <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="algo-label">Trigger 2 Source</label>
+                                    <select id="algoTriggerValueSource2" class="algo-select">
+                                        <option value="fixed">Fixed Value</option>
+                                        <option value="ema">EMA (60)</option>
+                                        <option value="sma">SMA (60)</option>
+                                        <option value="hist_high">Hist. High</option>
+                                        <option value="hist_low">Hist. Low</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="algo-label">Trigger 2 Value</label>
+                                    <input type="number" id="algoTriggerValue2" class="algo-input" step="0.01" placeholder="Enter trigger 2 value">
+                                </div>
+                            </div> <!-- End Column 1 -->
+
+                            <!-- Column 2: TradingView Condition -->
+                            <div class="condition-group tv-condition">
+                                <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND TradingView (Optional)</h4>
+                                <div class="input-group">
+                                     <label class="algo-label" for="requireTvCondition">Require TV?</label>
                                      <input type="checkbox" id="requireTvCondition" style="margin-left: 5px;">
                                 </div>
                                 <div class="input-group">
-                                     <label class="algo-label" for="tvConditionSymbolSelect">TV Symbol to Check</label>
+                                     <label class="algo-label" for="tvConditionSymbolSelect">TV Symbol</label>
                                      <select id="tvConditionSymbolSelect" class="algo-select">
                                          <option value="">-- Select TV Symbol --</option>
                                          <!-- Options populated dynamically -->
                                      </select>
                                 </div>
-                            </div> <!-- End TV Condition Group -->
+                            </div> <!-- End Column 2 -->
 
-                            <!-- Right Column for Signal Condition -->
+                            <!-- Column 3: Signal Condition -->
                             <div class="condition-group signal-condition">
-                                 <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Signal Condition (Optional)</h4>
+                                 <h4 style="margin-top: 15px; margin-bottom: 5px; border-top: 1px solid #eee; padding-top: 10px;">AND Signal (Optional)</h4>
                                  <div class="input-group">
-                                     <label class="algo-label" for="requireSignalCondition">Require Signal Condition?</label>
+                                     <label class="algo-label" for="requireSignalCondition">Require Signal?</label>
                                      <input type="checkbox" id="requireSignalCondition" style="margin-left: 5px;">
-                                 </div>
+                                </div>
                                  <div class="input-group">
-                                     <label class="algo-label" for="signalTriggerSelect">Signal Trigger to Check</label>
+                                     <label class="algo-label" for="signalTriggerSelect">Signal Trigger</label>
                                      <select id="signalTriggerSelect" class="algo-select">
                                          <option value="">-- Select Signal --</option>
                                          <option value="callentry">Call Entry</option>
                                          <option value="putentry">Put Entry</option>
                                      </select>
                                  </div>
-                            </div> <!-- End Signal Condition Group -->
+                            </div> <!-- End Column 3 -->
 
-                        </div> <!-- End Conditions Container -->
+                        </div> <!-- End Multi Conditions Container -->
+                        <!-- End Second Trigger Set --><!-- Removed original sections -->
 
                 <button class="algo-btn primary-btn" onclick="OrderSystem.handleUIPlaceOrder()">📤 Place Order</button>
             </div>
@@ -3252,14 +3294,13 @@
                 document.getElementById("activeCount").textContent = activeOrders.length;
 
                 // --- Auto-fill Modify Order ID --- 
-                const latestActiveOrderId = activeOrders.length > 0 
-                    ? Math.max(...activeOrders.map(o => o.id))
-                    : '';
                 const modifyIdInput = document.getElementById("modifyId");
                 if (modifyIdInput) {
-                    modifyIdInput.value = latestActiveOrderId;
-                    // Optionally trigger change event if needed elsewhere, though likely not for prefill
-                    // modifyIdInput.dispatchEvent(new Event('change')); 
+                    if (activeOrders.length === 1) {
+                        // Only update if there's exactly one active order
+                        modifyIdInput.value = activeOrders[0].id;
+                    }
+                    // Else: Don't automatically change the input if 0 or >1 active orders
                 }
                 // --- End Auto-fill ---
 
@@ -3460,24 +3501,50 @@
                         if(!order) throw new Error("Order not found");
 
                         const modifications = {};
+                        let targetUpdated = false;
+                        let slUpdated = false;
                         
+                        // Check and update Target if provided
                         if(targetType && !isNaN(newTarget)) {
                             order.isPercent.target = targetType === 'percent';
+                            // Calculate the new target price directly
+                            order.targetPrice = order.isPercent.target 
+                                ? (order.direction === "BUY" ? order.entryPrice * (1 + newTarget/100) : order.entryPrice * (1 - newTarget/100))
+                                : newTarget;
                             modifications.target = newTarget;
                             modifications.targetIsPercent = order.isPercent.target;
+                            targetUpdated = true;
+                            debugLog(`Order #${orderId}: Target updated to ${order.targetPrice.toFixed(2)} (${targetType})`, 'info');
                         }
 
+                        // Check and update Stop Loss if provided
                         if(slType && !isNaN(newSL)) {
                             order.isPercent.sl = slType === 'percent';
+                            // Calculate the new SL price directly
+                            order.slPrice = order.isPercent.sl
+                                ? (order.direction === "BUY" ? order.entryPrice * (1 - newSL/100) : order.entryPrice * (1 + newSL/100))
+                                : newSL;
                             modifications.sl = newSL;
                             modifications.slIsPercent = order.isPercent.sl;
+                            slUpdated = true;
+                             debugLog(`Order #${orderId}: SL updated to ${order.slPrice.toFixed(2)} (${slType})`, 'info');
                         }
 
-                        await BrokerAPI.modifyOrder(order.brokerId, modifications);
-                        order.updatePrices(
-                            !isNaN(newTarget) ? newTarget : order.targetPrice,
-                            !isNaN(newSL) ? newSL : order.slPrice
-                        );
+                        if (!targetUpdated && !slUpdated) {
+                             debugLog(`Order #${orderId}: No valid target or SL provided for modification.`, 'warn');
+                             alert("Please provide a valid value for Target or Stop Loss to modify.");
+                             return; // Don't proceed if nothing was updated
+                        }
+
+                        // TODO: Implement actual API call using the 'modifications' object
+                        // await BrokerAPI.modifyOrder(order.brokerId, modifications);
+                        debugLog(`Order #${orderId}: Modification request prepared (API call skipped): ${JSON.stringify(modifications)}`, 'info');
+
+                        // No longer needed as we update directly
+                        // order.updatePrices(
+                        //     !isNaN(newTarget) ? newTarget : order.targetPrice, 
+                        //     !isNaN(newSL) ? newSL : order.slPrice 
+                        // );
                         updateDisplay();
 
                     } catch (error) {
