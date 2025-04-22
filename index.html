@@ -1229,6 +1229,802 @@
          #dataBody td:nth-child(5) > *:last-child {
              margin-right: 0; /* No margin for the last element */
          }
+
+        /* TradingView Monitor Styles */
+        .input-toggle {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 4px 8px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container {
+            display: none;
+            position: fixed;
+            top: 35px; /* Adjusted top position slightly */
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px; /* Reduced padding */
+            border-radius: 6px; /* Slightly smaller radius */
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Reduced shadow */
+            z-index: 99;
+        }
+        .input-container.active {
+            display: block;
+        }
+        .input-container .input-group { /* More specific selector */
+            margin-bottom: 6px; /* Reduced margin */
+        }
+        .input-container input { /* More specific selector */
+            padding: 5px; /* Reduced padding */
+            width: 180px; /* Slightly reduced width */
+            border: 1px solid #ddd;
+            border-radius: 3px; /* Smaller radius */
+            font-size: 12px; /* Smaller font */
+        }
+        /* Avoid general button override if possible */
+        .input-container button {
+            padding: 6px 12px; /* Reduced padding */
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px; /* Smaller radius */
+            cursor: pointer;
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container button:hover {
+            background: #0056b3;
+        }
+        #results { /* Add margin-top to push table below fixed inputs */
+            /* margin-top: 65px; */ /* Adjust as needed based on input container height */
+            /* --- Make results fixed and scrollable --- */
+            position: fixed;
+            /* top: 115px; */      /* Position below input container (adjust as needed) */
+            top: 1px;        /* Position below input container */
+            /* left: 10px; */      /* Add some padding from the left edge */
+            /* right: 10px; */     /* Add some padding from the right edge */
+            right: 0;         /* Align to right edge */
+            /* bottom: 0; */    /* Position AT the bottom edge */
+            /* --- Auto width based on content --- */
+            width: max-content; /* Adjust width to content */
+            /* max-width: 95%; */     /* Prevent it from getting too wide */
+            max-width: 40%;      /* Limit width */
+            /* left: 50%; */          /* Center horizontally */
+            /* transform: translateX(-50%); */ /* Center horizontally */
+            /* --- End Auto width --- */
+            /* --- Auto height based on content --- */
+            height: max-content; /* Adjust height to content */
+            /* max-height: calc(100vh - 80px); */ /* Limit height (leave ~80px for top fixed elements) */
+            max-height: calc(100vh - 100px); /* Leave space top and bottom */
+            /* --- End Auto height --- */
+            overflow-y: auto; /* Allow vertical scrolling within the results div */
+            /* background: #fff; */ /* Remove background for transparency */
+            /* padding: 10px; */   /* Remove internal padding */
+            /* border: 1px solid #ddd; */ /* Remove border */
+            /* border-radius: 6px; */ /* Keep some rounding? */
+            /* box-shadow: 0 1px 5px rgba(0,0,0,0.1); */
+            z-index: 98;     /* Below inputs but above body */
+        }
+        #results table { /* More specific selector */
+            width: 100%;
+            border-collapse: collapse;
+            /* margin-top: 10px; */ /* No longer needed with padding in #results */
+            font-size: 8px; /* Smaller font for table */
+        }
+        #results th, #results td { /* More specific selector */
+            border: 1px solid #ddd;
+            padding: 5px; /* Reduced padding */
+            text-align: left;
+            position: sticky;
+            top: -1px; /* Stick to the very top of the scrollable #results */
+            z-index: 1; /* Ensure header stays above table content */
+            /* Adjust based on other fixed elements if necessary */
+            font-weight: 600; /* Ensure header is bold */
+        }
+        #results th { /* More specific selector */
+            background-color: #f8f9fa;
+        }
+        #results .highlight { /* More specific selector */
+            background-color: #fff3cd;
+        }
+
+        /* Container for side-by-side conditions (3 columns) */
+        .multi-conditions-container {
+            display: flex;
+            gap: 15px; /* Adjust gap between the three condition blocks */
+            margin-top: 15px; /* Add some space above this section */
+            align-items: flex-start; /* Align items to the top */
+            border-top: 1px solid #eee; /* Add separator line above */
+            padding-top: 10px; /* Space below the separator line */
+        }
+
+        /* Styling for individual condition groups (Trigger2, TV & Signal) */
+        .condition-group {
+            flex: 1; /* Make each group take up equal space */
+            /* Optional: Add border for visual separation during testing */
+            /* border: 1px dashed #ccc; */
+            /* padding: 5px; */
+        }
+
+        /* Adjust heading margin/style within the groups */
+        .condition-group h4 {
+            margin-top: 0 !important; /* Override existing margin */
+            padding-top: 0 !important; /* Override existing padding */
+            border-top: none !important; /* Remove the top border from original style */
+            margin-bottom: 10px !important; /* Space below heading */
+            font-size: 1em !important; /* Keep heading size consistent */
+        }
+
+        /* Optional: Adjust checkbox alignment if needed */
+        .condition-group input[type="checkbox"] {
+             margin-top: 5px; /* Align checkbox slightly better */
+        }
+
+        /* Ensure labels and inputs within the groups align well */
+        .condition-group .input-group .algo-label {
+            /* Adjust width if needed, maybe make it slightly smaller */
+             width: 80px;
+        }
+        .condition-group .input-group .algo-select,
+        .condition-group .input-group .algo-input {
+             /* Ensure they grow to fill remaining space */
+             flex-grow: 1;
+        }
+
+        /* Trigger cell in main table - Refined */
+        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
+            white-space: nowrap; /* Prevent wrapping within the cell */
+        }
+        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
+            display: inline-block; /* Keep elements inline */
+            vertical-align: middle; /* Align them vertically */
+            margin-right: 4px; /* Consistent spacing */
+            margin-bottom: 2px; /* Small bottom margin if they wrap */
+        }
+         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
+         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
+
+         #dataBody td:nth-child(5) > *:last-child {
+             margin-right: 0; /* No margin for the last element */
+         }
+
+        /* TradingView Monitor Styles */
+        .input-toggle {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 4px 8px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container {
+            display: none;
+            position: fixed;
+            top: 35px; /* Adjusted top position slightly */
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px; /* Reduced padding */
+            border-radius: 6px; /* Slightly smaller radius */
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Reduced shadow */
+            z-index: 99;
+        }
+        .input-container.active {
+            display: block;
+        }
+        .input-container .input-group { /* More specific selector */
+            margin-bottom: 6px; /* Reduced margin */
+        }
+        .input-container input { /* More specific selector */
+            padding: 5px; /* Reduced padding */
+            width: 180px; /* Slightly reduced width */
+            border: 1px solid #ddd;
+            border-radius: 3px; /* Smaller radius */
+            font-size: 12px; /* Smaller font */
+        }
+        /* Avoid general button override if possible */
+        .input-container button {
+            padding: 6px 12px; /* Reduced padding */
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px; /* Smaller radius */
+            cursor: pointer;
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container button:hover {
+            background: #0056b3;
+        }
+        #results { /* Add margin-top to push table below fixed inputs */
+            /* margin-top: 65px; */ /* Adjust as needed based on input container height */
+            /* --- Make results fixed and scrollable --- */
+            position: fixed;
+            /* top: 115px; */      /* Position below input container (adjust as needed) */
+            top: 1px;        /* Position below input container */
+            /* left: 10px; */      /* Add some padding from the left edge */
+            /* right: 10px; */     /* Add some padding from the right edge */
+            right: 0;         /* Align to right edge */
+            /* bottom: 0; */    /* Position AT the bottom edge */
+            /* --- Auto width based on content --- */
+            width: max-content; /* Adjust width to content */
+            /* max-width: 95%; */     /* Prevent it from getting too wide */
+            max-width: 40%;      /* Limit width */
+            /* left: 50%; */          /* Center horizontally */
+            /* transform: translateX(-50%); */ /* Center horizontally */
+            /* --- End Auto width --- */
+            /* --- Auto height based on content --- */
+            height: max-content; /* Adjust height to content */
+            /* max-height: calc(100vh - 80px); */ /* Limit height (leave ~80px for top fixed elements) */
+            max-height: calc(100vh - 100px); /* Leave space top and bottom */
+            /* --- End Auto height --- */
+            overflow-y: auto; /* Allow vertical scrolling within the results div */
+            /* background: #fff; */ /* Remove background for transparency */
+            /* padding: 10px; */   /* Remove internal padding */
+            /* border: 1px solid #ddd; */ /* Remove border */
+            /* border-radius: 6px; */ /* Keep some rounding? */
+            /* box-shadow: 0 1px 5px rgba(0,0,0,0.1); */
+            z-index: 98;     /* Below inputs but above body */
+        }
+        #results table { /* More specific selector */
+            width: 100%;
+            border-collapse: collapse;
+            /* margin-top: 10px; */ /* No longer needed with padding in #results */
+            font-size: 8px; /* Smaller font for table */
+        }
+        #results th, #results td { /* More specific selector */
+            border: 1px solid #ddd;
+            padding: 5px; /* Reduced padding */
+            text-align: left;
+            position: sticky;
+            top: -1px; /* Stick to the very top of the scrollable #results */
+            z-index: 1; /* Ensure header stays above table content */
+            /* Adjust based on other fixed elements if necessary */
+            font-weight: 600; /* Ensure header is bold */
+        }
+        #results th { /* More specific selector */
+            background-color: #f8f9fa;
+        }
+        #results .highlight { /* More specific selector */
+            background-color: #fff3cd;
+        }
+
+        /* Container for side-by-side conditions (3 columns) */
+        .multi-conditions-container {
+            display: flex;
+            gap: 15px; /* Adjust gap between the three condition blocks */
+            margin-top: 15px; /* Add some space above this section */
+            align-items: flex-start; /* Align items to the top */
+            border-top: 1px solid #eee; /* Add separator line above */
+            padding-top: 10px; /* Space below the separator line */
+        }
+
+        /* Styling for individual condition groups (Trigger2, TV & Signal) */
+        .condition-group {
+            flex: 1; /* Make each group take up equal space */
+            /* Optional: Add border for visual separation during testing */
+            /* border: 1px dashed #ccc; */
+            /* padding: 5px; */
+        }
+
+        /* Adjust heading margin/style within the groups */
+        .condition-group h4 {
+            margin-top: 0 !important; /* Override existing margin */
+            padding-top: 0 !important; /* Override existing padding */
+            border-top: none !important; /* Remove the top border from original style */
+            margin-bottom: 10px !important; /* Space below heading */
+            font-size: 1em !important; /* Keep heading size consistent */
+        }
+
+        /* Optional: Adjust checkbox alignment if needed */
+        .condition-group input[type="checkbox"] {
+             margin-top: 5px; /* Align checkbox slightly better */
+        }
+
+        /* Ensure labels and inputs within the groups align well */
+        .condition-group .input-group .algo-label {
+            /* Adjust width if needed, maybe make it slightly smaller */
+             width: 80px;
+        }
+        .condition-group .input-group .algo-select,
+        .condition-group .input-group .algo-input {
+             /* Ensure they grow to fill remaining space */
+             flex-grow: 1;
+        }
+
+        /* Trigger cell in main table - Refined */
+        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
+            white-space: nowrap; /* Prevent wrapping within the cell */
+        }
+        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
+            display: inline-block; /* Keep elements inline */
+            vertical-align: middle; /* Align them vertically */
+            margin-right: 4px; /* Consistent spacing */
+            margin-bottom: 2px; /* Small bottom margin if they wrap */
+        }
+         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
+         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
+
+         #dataBody td:nth-child(5) > *:last-child {
+             margin-right: 0; /* No margin for the last element */
+         }
+
+        /* TradingView Monitor Styles */
+        .input-toggle {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 4px 8px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container {
+            display: none;
+            position: fixed;
+            top: 35px; /* Adjusted top position slightly */
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px; /* Reduced padding */
+            border-radius: 6px; /* Slightly smaller radius */
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Reduced shadow */
+            z-index: 99;
+        }
+        .input-container.active {
+            display: block;
+        }
+        .input-container .input-group { /* More specific selector */
+            margin-bottom: 6px; /* Reduced margin */
+        }
+        .input-container input { /* More specific selector */
+            padding: 5px; /* Reduced padding */
+            width: 180px; /* Slightly reduced width */
+            border: 1px solid #ddd;
+            border-radius: 3px; /* Smaller radius */
+            font-size: 12px; /* Smaller font */
+        }
+        /* Avoid general button override if possible */
+        .input-container button {
+            padding: 6px 12px; /* Reduced padding */
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px; /* Smaller radius */
+            cursor: pointer;
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container button:hover {
+            background: #0056b3;
+        }
+        #results { /* Add margin-top to push table below fixed inputs */
+            /* margin-top: 65px; */ /* Adjust as needed based on input container height */
+            /* --- Make results fixed and scrollable --- */
+            position: fixed;
+            /* top: 115px; */      /* Position below input container (adjust as needed) */
+            top: 1px;        /* Position below input container */
+            /* left: 10px; */      /* Add some padding from the left edge */
+            /* right: 10px; */     /* Add some padding from the right edge */
+            right: 0;         /* Align to right edge */
+            /* bottom: 0; */    /* Position AT the bottom edge */
+            /* --- Auto width based on content --- */
+            width: max-content; /* Adjust width to content */
+            /* max-width: 95%; */     /* Prevent it from getting too wide */
+            max-width: 40%;      /* Limit width */
+            /* left: 50%; */          /* Center horizontally */
+            /* transform: translateX(-50%); */ /* Center horizontally */
+            /* --- End Auto width --- */
+            /* --- Auto height based on content --- */
+            height: max-content; /* Adjust height to content */
+            /* max-height: calc(100vh - 80px); */ /* Limit height (leave ~80px for top fixed elements) */
+            max-height: calc(100vh - 100px); /* Leave space top and bottom */
+            /* --- End Auto height --- */
+            overflow-y: auto; /* Allow vertical scrolling within the results div */
+            /* background: #fff; */ /* Remove background for transparency */
+            /* padding: 10px; */   /* Remove internal padding */
+            /* border: 1px solid #ddd; */ /* Remove border */
+            /* border-radius: 6px; */ /* Keep some rounding? */
+            /* box-shadow: 0 1px 5px rgba(0,0,0,0.1); */
+            z-index: 98;     /* Below inputs but above body */
+        }
+        #results table { /* More specific selector */
+            width: 100%;
+            border-collapse: collapse;
+            /* margin-top: 10px; */ /* No longer needed with padding in #results */
+            font-size: 8px; /* Smaller font for table */
+        }
+        #results th, #results td { /* More specific selector */
+            border: 1px solid #ddd;
+            padding: 5px; /* Reduced padding */
+            text-align: left;
+            position: sticky;
+            top: -1px; /* Stick to the very top of the scrollable #results */
+            z-index: 1; /* Ensure header stays above table content */
+            /* Adjust based on other fixed elements if necessary */
+            font-weight: 600; /* Ensure header is bold */
+        }
+        #results th { /* More specific selector */
+            background-color: #f8f9fa;
+        }
+        #results .highlight { /* More specific selector */
+            background-color: #fff3cd;
+        }
+
+        /* Container for side-by-side conditions (3 columns) */
+        .multi-conditions-container {
+            display: flex;
+            gap: 15px; /* Adjust gap between the three condition blocks */
+            margin-top: 15px; /* Add some space above this section */
+            align-items: flex-start; /* Align items to the top */
+            border-top: 1px solid #eee; /* Add separator line above */
+            padding-top: 10px; /* Space below the separator line */
+        }
+
+        /* Styling for individual condition groups (Trigger2, TV & Signal) */
+        .condition-group {
+            flex: 1; /* Make each group take up equal space */
+            /* Optional: Add border for visual separation during testing */
+            /* border: 1px dashed #ccc; */
+            /* padding: 5px; */
+        }
+
+        /* Adjust heading margin/style within the groups */
+        .condition-group h4 {
+            margin-top: 0 !important; /* Override existing margin */
+            padding-top: 0 !important; /* Override existing padding */
+            border-top: none !important; /* Remove the top border from original style */
+            margin-bottom: 10px !important; /* Space below heading */
+            font-size: 1em !important; /* Keep heading size consistent */
+        }
+
+        /* Optional: Adjust checkbox alignment if needed */
+        .condition-group input[type="checkbox"] {
+             margin-top: 5px; /* Align checkbox slightly better */
+        }
+
+        /* Ensure labels and inputs within the groups align well */
+        .condition-group .input-group .algo-label {
+            /* Adjust width if needed, maybe make it slightly smaller */
+             width: 80px;
+        }
+        .condition-group .input-group .algo-select,
+        .condition-group .input-group .algo-input {
+             /* Ensure they grow to fill remaining space */
+             flex-grow: 1;
+        }
+
+        /* Trigger cell in main table - Refined */
+        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
+            white-space: nowrap; /* Prevent wrapping within the cell */
+        }
+        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
+            display: inline-block; /* Keep elements inline */
+            vertical-align: middle; /* Align them vertically */
+            margin-right: 4px; /* Consistent spacing */
+            margin-bottom: 2px; /* Small bottom margin if they wrap */
+        }
+         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
+         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
+
+         #dataBody td:nth-child(5) > *:last-child {
+             margin-right: 0; /* No margin for the last element */
+         }
+
+        /* TradingView Monitor Styles */
+        .input-toggle {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 4px 8px; /* Reduced padding */
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container {
+            display: none;
+            position: fixed;
+            top: 35px; /* Adjusted top position slightly */
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px; /* Reduced padding */
+            border-radius: 6px; /* Slightly smaller radius */
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Reduced shadow */
+            z-index: 99;
+        }
+        .input-container.active {
+            display: block;
+        }
+        .input-container .input-group { /* More specific selector */
+            margin-bottom: 6px; /* Reduced margin */
+        }
+        .input-container input { /* More specific selector */
+            padding: 5px; /* Reduced padding */
+            width: 180px; /* Slightly reduced width */
+            border: 1px solid #ddd;
+            border-radius: 3px; /* Smaller radius */
+            font-size: 12px; /* Smaller font */
+        }
+        /* Avoid general button override if possible */
+        .input-container button {
+            padding: 6px 12px; /* Reduced padding */
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px; /* Smaller radius */
+            cursor: pointer;
+            font-size: 12px; /* Smaller font */
+        }
+        .input-container button:hover {
+            background: #0056b3;
+        }
+        #results { /* Add margin-top to push table below fixed inputs */
+            /* margin-top: 65px; */ /* Adjust as needed based on input container height */
+            /* --- Make results fixed and scrollable --- */
+            position: fixed;
+            /* top: 115px; */      /* Position below input container (adjust as needed) */
+            top: 1px;        /* Position below input container */
+            /* left: 10px; */      /* Add some padding from the left edge */
+            /* right: 10px; */     /* Add some padding from the right edge */
+            right: 0;         /* Align to right edge */
+            /* bottom: 0; */    /* Position AT the bottom edge */
+            /* --- Auto width based on content --- */
+            width: max-content; /* Adjust width to content */
+            /* max-width: 95%; */     /* Prevent it from getting too wide */
+            max-width: 40%;      /* Limit width */
+            /* left: 50%; */          /* Center horizontally */
+            /* transform: translateX(-50%); */ /* Center horizontally */
+            /* --- End Auto width --- */
+            /* --- Auto height based on content --- */
+            height: max-content; /* Adjust height to content */
+            /* max-height: calc(100vh - 80px); */ /* Limit height (leave ~80px for top fixed elements) */
+            max-height: calc(100vh - 100px); /* Leave space top and bottom */
+            /* --- End Auto height --- */
+            overflow-y: auto; /* Allow vertical scrolling within the results div */
+            /* background: #fff; */ /* Remove background for transparency */
+            /* padding: 10px; */   /* Remove internal padding */
+            /* border: 1px solid #ddd; */ /* Remove border */
+            /* border-radius: 6px; */ /* Keep some rounding? */
+            /* box-shadow: 0 1px 5px rgba(0,0,0,0.1); */
+            z-index: 98;     /* Below inputs but above body */
+        }
+        #results table { /* More specific selector */
+            width: 100%;
+            border-collapse: collapse;
+            /* margin-top: 10px; */ /* No longer needed with padding in #results */
+            font-size: 8px; /* Smaller font for table */
+        }
+        #results th, #results td { /* More specific selector */
+            border: 1px solid #ddd;
+            padding: 5px; /* Reduced padding */
+            text-align: left;
+            position: sticky;
+            top: -1px; /* Stick to the very top of the scrollable #results */
+            z-index: 1; /* Ensure header stays above table content */
+            /* Adjust based on other fixed elements if necessary */
+            font-weight: 600; /* Ensure header is bold */
+        }
+        #results th { /* More specific selector */
+            background-color: #f8f9fa;
+        }
+        #results .highlight { /* More specific selector */
+            background-color: #fff3cd;
+        }
+
+        /* Container for side-by-side conditions (3 columns) */
+        .multi-conditions-container {
+            display: flex;
+            gap: 15px; /* Adjust gap between the three condition blocks */
+            margin-top: 15px; /* Add some space above this section */
+            align-items: flex-start; /* Align items to the top */
+            border-top: 1px solid #eee; /* Add separator line above */
+            padding-top: 10px; /* Space below the separator line */
+        }
+
+        /* Styling for individual condition groups (Trigger2, TV & Signal) */
+        .condition-group {
+            flex: 1; /* Make each group take up equal space */
+            /* Optional: Add border for visual separation during testing */
+            /* border: 1px dashed #ccc; */
+            /* padding: 5px; */
+        }
+
+        /* Adjust heading margin/style within the groups */
+        .condition-group h4 {
+            margin-top: 0 !important; /* Override existing margin */
+            padding-top: 0 !important; /* Override existing padding */
+            border-top: none !important; /* Remove the top border from original style */
+            margin-bottom: 10px !important; /* Space below heading */
+            font-size: 1em !important; /* Keep heading size consistent */
+        }
+
+        /* Optional: Adjust checkbox alignment if needed */
+        .condition-group input[type="checkbox"] {
+             margin-top: 5px; /* Align checkbox slightly better */
+        }
+
+        /* Ensure labels and inputs within the groups align well */
+        .condition-group .input-group .algo-label {
+            /* Adjust width if needed, maybe make it slightly smaller */
+             width: 80px;
+        }
+        .condition-group .input-group .algo-select,
+        .condition-group .input-group .algo-input {
+             /* Ensure they grow to fill remaining space */
+             flex-grow: 1;
+        }
+
+        /* Trigger cell in main table - Refined */
+        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
+            white-space: nowrap; /* Prevent wrapping within the cell */
+        }
+        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
+            display: inline-block; /* Keep elements inline */
+            vertical-align: middle; /* Align them vertically */
+            margin-right: 4px; /* Consistent spacing */
+            margin-bottom: 2px; /* Small bottom margin if they wrap */
+        }
+         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
+         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
+         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
+
+         #dataBody td:nth-child(5) > *:last-child {
+             margin-right: 0; /* No margin for the last element */
+         }
+
+        /* --- Mobile Optimizations --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px; /* Tighter padding */
+                font-size: 12px; /* Slightly smaller base font */
+            }
+
+            .controls {
+                flex-wrap: wrap; /* Allow controls to wrap */
+                padding: 8px;
+            }
+            .controls > div { /* Adjust spacing for wrapped items */
+                 margin-top: 8px;
+             }
+            #searchInput { /* Make search wider on mobile */
+                 width: calc(100% - 100px);
+             }
+
+            /* Stack Algo columns */
+            .algo-columns-container, .multi-conditions-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .algo-column-left, .algo-column-right {
+                min-width: unset; /* Remove min-width on mobile */
+            }
+
+            /* --- Table Adjustments --- */
+
+            /* Allow horizontal scrolling for tables */
+            .market-table, #orderBook, #results {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch; /* Smoother scrolling on iOS */
+            }
+
+            /* Reduce padding in ALL tables */
+             table th, table td {
+                 padding: 4px 6px;
+                 font-size: 11px;
+             }
+
+            /* Hide less critical columns in Main Table */
+            #dataBody th:nth-child(8), /* Hist. High */
+            #dataBody td:nth-child(8),
+            #dataBody th:nth-child(9), /* Hist. Low */
+            #dataBody td:nth-child(9),
+            #dataBody th:nth-child(10), /* Change */
+            #dataBody td:nth-child(10),
+            #dataBody th:nth-child(11), /* EMA */
+            #dataBody td:nth-child(11),
+             #dataBody th:nth-child(12), /* SMA */
+             #dataBody td:nth-child(12) {
+                display: none;
+            }
+
+            /* Hide less critical columns in Order Book */
+             #orderBody th:nth-child(7), /* Filled Qty */
+             #orderBody td:nth-child(7),
+             #orderBody th:nth-child(8), /* Avg Price */
+             #orderBody td:nth-child(8) {
+                 display: none;
+            }
+             /* Make Order Book Symbol column wider */
+             #orderBody th:nth-child(2),
+             #orderBody td:nth-child(2) {
+                 min-width: 100px;
+             }
+
+
+            /* Adjust TV Results Table - Example: Hiding a specific column if needed */
+            /* #results th:nth-child(3), */
+            /* #results td:nth-child(3) { */
+            /*     display: none; */
+            /* } */
+            #results table { /* Ensure TV results table font isn't too tiny */
+                font-size: 10px;
+            }
+             #results { /* Adjust position/size of TV results container */
+                 max-width: 95%; /* Allow it to be wider */
+                 max-height: 50vh; /* Limit height */
+                 top: auto; /* Unset fixed top */
+                 /* bottom: 40px; */ /* Position near bottom - Changed to relative positioning */
+                 left: 2.5%;
+                 right: 2.5%;
+                 width: 95%;
+                 transform: none; /* Remove horizontal centering */
+                 position: relative; /* Change from fixed to relative */
+                 margin-top: 10px; /* Add space above */
+                 bottom: auto; /* Ensure bottom is not set */
+             }
+             .input-toggle, .input-container { /* Adjust TV inputs */
+                 position: relative; /* Change from fixed */
+                 top: auto; left: auto; transform: none;
+                 width: 95%;
+                 margin: 5px auto;
+             }
+             .input-container {
+                 top: 0; /* Adjust relative position */
+             }
+
+
+            /* Reduce font size in status panels */
+            .status-content, .status-entry {
+                font-size: 11px;
+            }
+            .status-panel {
+                 min-width: unset; /* Remove min-width */
+                 margin-top: 10px; /* Add space when stacking */
+             }
+            .market-container { /* Stack market table and status */
+                 flex-direction: column;
+             }
+
+            /* Adjust Algo Input Groups slightly */
+            .algo-input, .algo-select {
+                font-size: 12px;
+            }
+            .input-group {
+                 /* Optional: Stack label and input */
+                 /* flex-direction: column; */
+                 /* align-items: flex-start; */
+                 /* gap: 2px; */
+             }
+             .input-group .algo-label {
+                 /* width: auto; */ /* Use if stacking */
+             }
+             /* Adjust heading sizes */
+             #algo h2, #algo h3, #algo h4 { font-size: 1em; }
+
+
+             /* Reduce Cred box padding */
+             .cred-box { padding: 8px; }
+
+             /* Make buttons slightly smaller */
+             button { padding: 4px 8px; font-size: 12px; }
+             .cred-box button, .cred-box a { padding: 6px 10px; }
+
+             /* Adjust fixed broker status */
+             .broker-status { font-size: 11px; padding: 3px 6px; bottom: 2px; right: 2px; }
+             /* Adjust shark */
+             .shark-container { width: 80px; height: auto; }
+             .shark-text { font-size: 8px; }
+        }
     </style>
 </head>
 <body>
