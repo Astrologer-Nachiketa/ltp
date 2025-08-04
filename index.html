@@ -1700,6 +1700,341 @@
              .shark-container { width: 80px; height: auto; }
              .shark-text { font-size: 8px; }
         }
+
+        /* Market Depth Styles - Compact Version */
+        .depth-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .depth-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .depth-input-group label {
+            font-weight: 500;
+            font-size: 12px;
+            color: #495057;
+        }
+
+        .depth-select {
+            padding: 6px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 100px;
+        }
+
+        .depth-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .depth-btn:first-of-type {
+            background: #28a745;
+            color: white;
+        }
+
+        .depth-btn:first-of-type:hover {
+            background: #218838;
+        }
+
+        .depth-btn:last-of-type {
+            background: #dc3545;
+            color: white;
+        }
+
+        .depth-btn:last-of-type:hover {
+            background: #c82333;
+        }
+
+        .depth-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .depth-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: help;
+            position: relative;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border-color: #007bff;
+        }
+
+        .summary-card::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .summary-card:hover::after,
+        .summary-card:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .summary-card h4 {
+            margin: 0 0 5px 0;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #212529;
+            transition: all 0.3s ease;
+        }
+
+        .summary-subtitle {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .buy-summary {
+            border-left: 4px solid #28a745;
+        }
+
+        .sell-summary {
+            border-left: 4px solid #dc3545;
+        }
+
+        .spread-summary {
+            border-left: 4px solid #ffc107;
+        }
+
+        .qty-spread-summary {
+            border-left: 4px solid #6f42c1;
+        }
+
+        .mid-summary {
+            border-left: 4px solid #17a2b8;
+        }
+
+        .depth-container {
+            margin-bottom: 10px;
+        }
+
+        .depth-table-container {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .depth-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .depth-table th {
+            background: #f8f9fa;
+            padding: 8px 6px;
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 11px;
+        }
+
+        .depth-table td {
+            padding: 6px 6px;
+            text-align: center;
+            border-bottom: 1px solid #f1f3f4;
+            transition: all 0.2s ease;
+            font-size: 11px;
+        }
+
+        .sell-header {
+            background: #fff5f5 !important;
+            color: #dc3545;
+        }
+
+        .buy-header {
+            background: #f0fff4 !important;
+            color: #28a745;
+        }
+
+        .depth-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .sell-price {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .buy-price {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .sell-qty {
+            color: #dc3545;
+        }
+
+        .buy-qty {
+            color: #28a745;
+        }
+
+        .depth-chart-container {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .depth-chart-container h4 {
+            margin: 0 0 8px 0;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        #depthChart {
+            width: 100%;
+            max-width: 800px;
+            height: 250px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+
+        .depth-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .depth-bar {
+            height: 20px;
+            border-radius: 2px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        .sell-bar {
+            background: linear-gradient(90deg, #ffebee, #ffcdd2);
+            border-left: 3px solid #dc3545;
+        }
+
+        .buy-bar {
+            background: linear-gradient(90deg, #e8f5e8, #c8e6c9);
+            border-left: 3px solid #28a745;
+        }
+
+        .depth-value {
+            min-width: 80px;
+            text-align: right;
+            font-weight: 500;
+            margin: 0 10px;
+        }
+
+        .depth-price {
+            min-width: 100px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .depth-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .depth-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .depth-table {
+                font-size: 12px;
+            }
+            
+            .depth-table th,
+            .depth-table td {
+                padding: 8px 4px;
+            }
+        }
+
+        .sentiment-summary {
+            border-left: 4px solid #007bff;
+        }
+        .midprice-chart-container {
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto 10px auto;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+            padding: 4px 0 0 0;
+        }
+        #midPriceChart {
+            display: block;
+            width: 100%;
+            height: 60px;
+        }
     </style>
 </head>
 <body>
@@ -1792,6 +2127,7 @@
     <div class="algo-section">
         <div class="tab-bar">
             <button class="tab-btn active" onclick="showTab('orderBook')">Order Book</button>
+            <button class="tab-btn" onclick="showTab('marketDepth')">Market Depth</button>
             <button class="tab-btn" onclick="showTab('algo')">Algo Trading</button>
         </div>
         
@@ -1817,16 +2153,107 @@
             </table>
         </div>
 
+        <!-- Market Depth Tab -->
+        <div id="marketDepth" class="tab-content">
+            <h3>Market Depth Visualization</h3>
+            
+                         <!-- Market Depth Controls -->
+             <div class="depth-controls">
+                 <div class="depth-input-group">
+                     <label for="depthSymbol">Symbol:</label>
+                     <select id="depthSymbol" class="depth-select">
+                         <option value="">Select Symbol</option>
+                     </select>
+                 </div>
+                 <div class="depth-input-group">
+                     <label for="depthExchange">Exchange:</label>
+                     <select id="depthExchange" class="depth-select">
+                         <option value="NSE">NSE</option>
+                         <option value="NFO">NFO</option>
+                         <option value="MCX">MCX</option>
+                     </select>
+                 </div>
+                 <div class="depth-input-group">
+                     <label>&nbsp;</label>
+                     <button onclick="updateDepthSymbolDropdown()" class="depth-btn" style="background: #17a2b8; color: white;">Refresh Symbols</button>
+                 </div>
+             </div>
+
+            <!-- Total Buy/Sell Summary -->
+            <div class="depth-summary">
+                <div class="summary-card buy-summary" title="Total quantity of all buy orders across all price levels. Higher values indicate stronger buying pressure.">
+                    <h4>Total Buy Quantity</h4>
+                    <div class="summary-value" id="totalBuyQty">0</div>
+                </div>
+                <div class="summary-card sell-summary" title="Total quantity of all sell orders across all price levels. Higher values indicate stronger selling pressure.">
+                    <h4>Total Sell Quantity</h4>
+                    <div class="summary-value" id="totalSellQty">0</div>
+                </div>
+                <div class="summary-card spread-summary" title="Difference between best ask and best bid prices. Lower values indicate tighter spreads and better liquidity.">
+                    <h4>Price Spread</h4>
+                    <div class="summary-value" id="spreadValue">0.00</div>
+                    <div class="summary-subtitle" id="spreadPercentage">0.00%</div>
+                </div>
+                <div class="summary-card qty-spread-summary" title="Ratio of buy quantity to sell quantity. Values > 1 indicate buy pressure, < 1 indicate sell pressure.">
+                    <h4>Quantity Spread</h4>
+                    <div class="summary-value" id="qtySpreadValue">0.00</div>
+                    <div class="summary-subtitle" id="qtySpreadPercentage">0.00%</div>
+                </div>
+                <div class="summary-card mid-summary" title="Average of best bid and best ask prices. Used as reference point for spread calculations.">
+                    <h4>Mid Price</h4>
+                    <div class="summary-value" id="midPrice">0.00</div>
+                </div>
+                <div class="summary-card sentiment-summary" title="Market sentiment based on price spread and quantity spread analysis. Helps identify bullish/bearish pressure.">
+                    <h4>Sentiment</h4>
+                    <div class="summary-value" id="sentimentValue">-</div>
+                </div>
+            </div>
+            <div class="midprice-chart-container" title="Live chart showing the last 100 mid price movements. Helps identify price trends and volatility.">
+                <canvas id="midPriceChart" width="300" height="60"></canvas>
+            </div>
+
+            <!-- Market Depth Table -->
+            <div class="depth-container">
+                <div class="depth-table-container">
+                    <table class="depth-table">
+                        <thead>
+                            <tr>
+                                <th colspan="3" class="buy-header" title="Buy orders (bids) - prices at which buyers are willing to buy">Buy Orders</th>
+                                <th colspan="3" class="sell-header" title="Sell orders (asks) - prices at which sellers are willing to sell">Sell Orders</th>
+                            </tr>
+                            <tr>
+                                <th title="Price level for the order">Price</th>
+                                <th title="Quantity available at this price level">Quantity</th>
+                                <th title="Cumulative total quantity from this level and below">Total</th>
+                                <th title="Price level for the order">Price</th>
+                                <th title="Quantity available at this price level">Quantity</th>
+                                <th title="Cumulative total quantity from this level and above">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="depthTableBody">
+                            <!-- Market depth data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Depth Chart Visualization -->
+            <div class="depth-chart-container">
+                <h4>Depth Chart</h4>
+                <canvas id="depthChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+
         <!-- Algo Trading Tab -->
         <div id="algo" class="tab-content">
-            <h2>📈 Algo Trading Terminal</h2>
+            <h2>Algo Trading Terminal</h2>
             <div class="status-bar">
-                <div>📊 LTP: <span id="currentPrice">-</span></div>
-                <div>💰 P&L: <span id="totalPnl">0.00</span></div>
-                <div>📌 Active: <span id="activeCount">0</span></div>
-                <div>⏱️ Timeout (min): <input type="number" id="triggerTimeout" min="1" value="5" style="width: 60px; padding: 2px 4px; margin: 0 4px;"></div>
-                <div>🎯 Active Trigger: <span id="activeTriggerStatus">None</span></div>
-                <button id="stopTriggerBtn" class="stop-trigger-btn" onclick="OrderSystem.stopAllTriggers()" disabled>🛑 Stop Trigger</button>
+                <div>LTP: <span id="currentPrice">-</span></div>
+                <div>P&L: <span id="totalPnl">0.00</span></div>
+                <div>Active: <span id="activeCount">0</span></div>
+                <div>Timeout (min): <input type="number" id="triggerTimeout" min="1" value="5" style="width: 60px; padding: 2px 4px; margin: 0 4px;"></div>
+                <div>Active Trigger: <span id="activeTriggerStatus">None</span></div>
+                <button id="stopTriggerBtn" class="stop-trigger-btn" onclick="OrderSystem.stopAllTriggers()" disabled>Stop Trigger</button>
             </div>
 
             <!-- NEW Container for the two columns -->
@@ -1834,7 +2261,7 @@
                 <!-- Left Column -->
                 <div class="algo-column-left">
                     <div class="algo-section"> <!-- Existing New Order Section -->
-                <h3>📝 New Order</h3>
+                <h3>New Order</h3>
                 <div class="input-group">
                     <label class="algo-label">Symbol</label>
                     <select id="symbol" class="algo-select">
@@ -1855,7 +2282,7 @@
 
                 <div class="price-input-group">
                     <div>
-                        <h4>🎯 Target</h4>
+                        <h4>Target</h4>
                         <div class="input-radio-group">
                             <label>
                                 <input type="radio" name="targetType" value="percent" checked> %
@@ -1868,7 +2295,7 @@
                     </div>
 
                     <div>
-                        <h4>🛑 Stoploss</h4>
+                        <h4>Stoploss</h4>
                         <div class="input-radio-group">
                             <label>
                                 <input type="radio" name="slType" value="percent" checked> %
@@ -1894,8 +2321,8 @@
                         <option value="buy_below">Buy Below</option>
                         <option value="sell_above">Sell Above</option>
                         <option value="sell_below">Sell Below</option>
-                                <option value="buy_green_ltp_lt_sma">LTP &gt; High && LTP &gt; EMA &gt; SMA</option>
-                                <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
+                                <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
+                                <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
                     </select>
                 </div>
 
@@ -1931,7 +2358,7 @@
                                         <option value="sell_above">Sell Above</option>
                                         <option value="sell_below">Sell Below</option>
                                         <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
-                                        <option value="buy_ltp_gt_ema_gt_sma">LTP&gt;EMA&gt;SMA</option>
+                                        <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
                                     </select>
                                 </div>
                                 <div class="input-group">
@@ -2170,6 +2597,12 @@
             
             document.getElementById(tabName).classList.add('active');
             event.currentTarget.classList.add('active');
+            
+            // Update depth dropdown when market depth tab is shown
+            if (tabName === 'marketDepth') {
+                console.log('Market depth tab shown, updating dropdown...');
+                updateDepthSymbolDropdown();
+            }
         }
 
         // Update Symbol Dropdown for Algo Trading
@@ -2492,6 +2925,8 @@
         }
 
         function handleMessage(data) {
+            console.log('Received WebSocket message:', data); // Debug log
+            
             switch (data.t) {
                 case 'ck':
                     if (data.s === 'OK') {
@@ -2510,6 +2945,11 @@
                         subscribedScripts.get(scriptKey).pp = data.pp;
                         updateTableRow(scriptKey);
                     }
+                    break;
+                    
+                case 'df':
+                    console.log('Received depth feed data:', data);
+                    handleDepthFeed(data);
                     break;
             }
         }
@@ -3071,23 +3511,8 @@
                 }
                 // If they're equal, neither gets a color
                 
-                // Add arrows for EMA comparison with LTP
+                // Add trading signals based on conditions next to LTP (clean version)
                 if (!isNaN(ltp) && ltp > 0) {
-                    // EMA vs LTP
-                    if (ema > ltp) {
-                        emaCell.innerHTML = `${emaCell.innerText} ↑`;
-                    } else if (ema < ltp) {
-                        emaCell.innerHTML = `${emaCell.innerText} ↓`;
-                    }
-                    
-                    // SMA vs LTP
-                    if (sma > ltp) {
-                        smaCell.innerHTML = `${smaCell.innerText} ↑`;
-                    } else if (sma < ltp) {
-                        smaCell.innerHTML = `${smaCell.innerText} ↓`;
-                    }
-                    
-                    // Add trading signals based on conditions next to LTP
                     let signalHTML = '';
                     
                     // Condition 1: LTP > EMA > SMA → Show "S" (Sell signal)
@@ -4498,6 +4923,640 @@
         setInterval(fetchSignalAndCheckTrigger, 5000); // Check every 5 seconds
         // --- End Signal Trigger Integration ---
 
+        // --- Market Depth Functionality ---
+        let currentDepthSubscription = null;
+        let depthData = {
+            buy: [],
+            sell: [],
+            totalBuyQty: 0,
+            totalSellQty: 0,
+            qtySpread: 0,
+            qtySpreadPercentage: 0,
+            spread: 0,
+            spreadPercentage: 0,
+            midPrice: 0
+        };
+        let depthUpdateTimeout = null; // For throttling updates
+        let midPriceHistory = [];
+        let qtySpreadPercentageHistory = [];
+        let priceSpreadPercentageHistory = [];
+        const MID_PRICE_HISTORY_LIMIT = 100;
+
+        function autoSubscribeDepth() {
+            const scriptKey = document.getElementById('depthSymbol').value;
+            const exchange = document.getElementById('depthExchange').value;
+            if (!scriptKey || !exchange) return;
+
+            if (currentDepthSubscription !== scriptKey) {
+                midPriceHistory = [];
+                qtySpreadPercentageHistory = [];
+                priceSpreadPercentageHistory = [];
+                depthData = {
+                    buy: [],
+                    sell: [],
+                    totalBuyQty: 0,
+                    totalSellQty: 0,
+                    qtySpread: 0,
+                    qtySpreadPercentage: 0,
+                    spread: 0,
+                    spreadPercentage: 0,
+                    midPrice: 0
+                };
+                updateDepthDisplay();
+            }
+
+            if (currentDepthSubscription && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ t: "ud", k: currentDepthSubscription }));
+                currentDepthSubscription = null;
+            }
+
+            const script = subscribedScripts.get(scriptKey);
+            if (script && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ t: "d", k: scriptKey }));
+                currentDepthSubscription = scriptKey;
+            }
+        }
+
+        function initializeMarketDepth() {
+            updateDepthSymbolDropdown();
+            document.getElementById('depthSymbol').addEventListener('change', function() {
+                const scriptKey = this.value;
+                if (scriptKey) {
+                    const script = subscribedScripts.get(scriptKey);
+                    if (script) {
+                        document.getElementById('depthExchange').value = script.exch;
+                    }
+                }
+                autoSubscribeDepth();
+            });
+        }
+
+        function updateDepthSymbolDropdown() {
+            const depthSymbolSelect = document.getElementById('depthSymbol');
+            if (!depthSymbolSelect) {
+                console.log('Depth symbol select element not found');
+                return;
+            }
+            
+            console.log('Updating depth symbol dropdown...');
+            console.log('SubscribedScripts size:', subscribedScripts.size);
+            console.log('All subscribed scripts:', Array.from(subscribedScripts.entries()));
+            
+            depthSymbolSelect.innerHTML = '<option value="">Select Symbol</option>';
+            
+            if (subscribedScripts.size === 0) {
+                console.log('No subscribed scripts available yet');
+                return;
+            }
+            
+            Array.from(subscribedScripts.entries()).forEach(([scriptKey, script]) => {
+                console.log('Adding option:', scriptKey, script);
+                const option = document.createElement('option');
+                option.value = scriptKey;
+                option.textContent = `${script.tsym} (${script.exch}) - ${script.token}`;
+                depthSymbolSelect.appendChild(option);
+            });
+            
+            console.log('Depth dropdown updated with', depthSymbolSelect.children.length - 1, 'options');
+        }
+
+        function handleDepthFeed(data) {
+            if (data.t !== 'df') return;
+            const buyOrders = [];
+            const sellOrders = [];
+            for (let i = 1; i <= 5; i++) {
+                const price = data[`bp${i}`];
+                const quantity = data[`bq${i}`];
+                if (price && quantity && parseFloat(price) > 0 && parseFloat(quantity) > 0) {
+                    buyOrders.push({ price: parseFloat(price), quantity: parseInt(quantity) });
+                }
+            }
+            for (let i = 1; i <= 5; i++) {
+                const price = data[`sp${i}`];
+                const quantity = data[`sq${i}`];
+                if (price && quantity && parseFloat(price) > 0 && parseFloat(quantity) > 0) {
+                    sellOrders.push({ price: parseFloat(price), quantity: parseInt(quantity) });
+                }
+            }
+            buyOrders.sort((a, b) => b.price - a.price);
+            sellOrders.sort((a, b) => a.price - b.price);
+            const totalBuyQty = buyOrders.reduce((sum, order) => sum + order.quantity, 0);
+            const totalSellQty = sellOrders.reduce((sum, order) => sum + order.quantity, 0);
+            let qtySpread = 0;
+            let qtySpreadPercentage = 0;
+            if (totalSellQty > 0) {
+                qtySpread = totalBuyQty / totalSellQty;
+                qtySpreadPercentage = (qtySpread / (qtySpread + 1)) * 100;
+            } else if (totalBuyQty > 0) {
+                qtySpread = totalBuyQty;
+                qtySpreadPercentage = 100;
+            } else {
+                qtySpread = 0;
+                qtySpreadPercentage = 0;
+            }
+            let spread = 0;
+            let spreadPercentage = 0;
+            let midPrice = 0;
+            if (buyOrders.length > 0 && sellOrders.length > 0) {
+                const bestBid = buyOrders[0].price;
+                const bestAsk = sellOrders[0].price;
+                spread = bestAsk - bestBid;
+                midPrice = (bestBid + bestAsk) / 2;
+                spreadPercentage = (spread / midPrice) * 100;
+            } else if (buyOrders.length > 0) {
+                midPrice = buyOrders[0].price;
+                spread = 0;
+                spreadPercentage = 0;
+            } else if (sellOrders.length > 0) {
+                midPrice = sellOrders[0].price;
+                spread = 0;
+                spreadPercentage = 0;
+            }
+            if (buyOrders.length > 0 || sellOrders.length > 0) {
+                if (midPrice > 0) {
+                    midPriceHistory.push(midPrice);
+                    if (midPriceHistory.length > MID_PRICE_HISTORY_LIMIT) {
+                        midPriceHistory.shift();
+                    }
+                }
+                if (!isNaN(qtySpreadPercentage)) {
+                    qtySpreadPercentageHistory.push(qtySpreadPercentage);
+                    if (qtySpreadPercentageHistory.length > MID_PRICE_HISTORY_LIMIT) {
+                        qtySpreadPercentageHistory.shift();
+                    }
+                }
+                if (!isNaN(spreadPercentage)) {
+                    priceSpreadPercentageHistory.push(spreadPercentage);
+                    if (priceSpreadPercentageHistory.length > MID_PRICE_HISTORY_LIMIT) {
+                        priceSpreadPercentageHistory.shift();
+                    }
+                }
+                depthData = {
+                    buy: buyOrders,
+                    sell: sellOrders,
+                    totalBuyQty: totalBuyQty,
+                    totalSellQty: totalSellQty,
+                    qtySpread: qtySpread,
+                    qtySpreadPercentage: qtySpreadPercentage,
+                    spread: spread,
+                    spreadPercentage: spreadPercentage,
+                    midPrice: midPrice
+                };
+                if (depthUpdateTimeout) {
+                    clearTimeout(depthUpdateTimeout);
+                }
+                depthUpdateTimeout = setTimeout(() => {
+                    updateDepthDisplay();
+                }, 100);
+            }
+        }
+
+        function updateDepthDisplay() {
+            document.getElementById('totalBuyQty').innerText = depthData.totalBuyQty.toLocaleString();
+            document.getElementById('totalSellQty').innerText = depthData.totalSellQty.toLocaleString();
+            document.getElementById('spreadValue').innerText = depthData.spread.toFixed(2);
+            document.getElementById('spreadPercentage').innerText = depthData.spreadPercentage.toFixed(2) + '%';
+            document.getElementById('qtySpreadValue').innerText = depthData.qtySpread.toFixed(2);
+            document.getElementById('qtySpreadPercentage').innerText = depthData.qtySpreadPercentage.toFixed(2) + '%';
+            document.getElementById('midPrice').innerText = depthData.midPrice.toFixed(2);
+            updateSentimentIndicator();
+            drawMidPriceChart();
+            updateDepthTable();
+            updateDepthChart();
+        }
+
+        function updateSentimentIndicator() {
+            let sentiment = '-';
+            if (depthData.spread > 0 && depthData.qtySpread > 0) {
+                if (depthData.spread < 0.1 && depthData.qtySpread > 1.5) {
+                    sentiment = 'Strong Bullish';
+                } else if (depthData.spread > 1 && depthData.qtySpread < 0.7) {
+                    sentiment = 'Strong Bearish';
+                } else if (depthData.qtySpread >= 0.7 && depthData.qtySpread <= 1.5) {
+                    sentiment = 'Neutral';
+                } else {
+                    sentiment = 'Mixed';
+                }
+            }
+            document.getElementById('sentimentValue').innerText = sentiment;
+        }
+
+        function drawMidPriceChart() {
+            const canvas = document.getElementById('midPriceChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            ctx.clearRect(0, 0, width, height);
+            if (midPriceHistory.length === 0 || qtySpreadPercentageHistory.length === 0) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', width / 2, height / 2);
+                return;
+            }
+            if (midPriceHistory.length < 2 || qtySpreadPercentageHistory.length < 2) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Collecting data...', width / 2, height / 2);
+                return;
+            }
+            const minPrice = Math.min(...midPriceHistory);
+            const maxPrice = Math.max(...midPriceHistory);
+            const priceRange = maxPrice - minPrice || 1;
+            ctx.strokeStyle = '#007bff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < midPriceHistory.length; i++) {
+                const x = (i / (MID_PRICE_HISTORY_LIMIT - 1)) * width;
+                const y = height - ((midPriceHistory[i] - minPrice) / priceRange) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#007bff';
+            ctx.fillText('Mid Price', 50, 12);
+        }
+
+        // Update depth table
+        function updateDepthTable() {
+            const tbody = document.getElementById('depthTableBody');
+            if (!tbody) return;
+
+            // Get or create rows for depth data
+            const maxRows = Math.max(depthData.sell.length, depthData.buy.length);
+            
+            // Ensure we have enough rows
+            while (tbody.children.length < maxRows) {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td class="buy-price"></td>
+                    <td class="buy-qty"></td>
+                    <td class="buy-qty"></td>
+                    <td class="sell-price"></td>
+                    <td class="sell-qty"></td>
+                    <td class="sell-qty"></td>
+                `;
+                tbody.appendChild(newRow);
+            }
+
+            // Update each row with new data (simple approach like market data table)
+            for (let i = 0; i < maxRows; i++) {
+                const row = tbody.children[i];
+                const sellOrder = depthData.sell[i] || null;
+                const buyOrder = depthData.buy[i] || null;
+
+                // Update buy side cells (left side)
+                const buyPriceCell = row.children[0];
+                const buyQtyCell = row.children[1];
+                const buyTotalCell = row.children[2];
+
+                if (buyOrder) {
+                    const buyTotal = depthData.buy.slice(0, i + 1).reduce((sum, order) => sum + order.quantity, 0);
+                    buyPriceCell.innerText = buyOrder.price.toFixed(2);
+                    buyQtyCell.innerText = buyOrder.quantity.toLocaleString();
+                    buyTotalCell.innerText = buyTotal.toLocaleString();
+                } else {
+                    buyPriceCell.innerText = '';
+                    buyQtyCell.innerText = '';
+                    buyTotalCell.innerText = '';
+                }
+
+                // Update sell side cells (right side)
+                const sellPriceCell = row.children[3];
+                const sellQtyCell = row.children[4];
+                const sellTotalCell = row.children[5];
+
+                if (sellOrder) {
+                    const sellTotal = depthData.sell.slice(0, i + 1).reduce((sum, order) => sum + order.quantity, 0);
+                    sellPriceCell.innerText = sellOrder.price.toFixed(2);
+                    sellQtyCell.innerText = sellOrder.quantity.toLocaleString();
+                    sellTotalCell.innerText = sellTotal.toLocaleString();
+                } else {
+                    sellPriceCell.innerText = '';
+                    sellQtyCell.innerText = '';
+                    sellTotalCell.innerText = '';
+                }
+            }
+
+            // Remove extra rows if we have more than needed
+            while (tbody.children.length > maxRows) {
+                tbody.removeChild(tbody.lastChild);
+            }
+        }
+
+        // Update depth chart
+        function updateDepthChart() {
+            const canvas = document.getElementById('depthChart');
+            if (!canvas) return;
+
+            // Check if data has actually changed to prevent unnecessary redraws
+            const currentData = JSON.stringify(depthData);
+            if (canvas.lastData === currentData) {
+                return; // Data hasn't changed, skip redraw
+            }
+            canvas.lastData = currentData;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            if (depthData.sell.length === 0 && depthData.buy.length === 0) {
+                // Draw "No Data" message
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No market depth data available', width / 2, height / 2);
+                return;
+            }
+
+            // Find price range
+            const allPrices = [
+                ...depthData.sell.map(order => order.price),
+                ...depthData.buy.map(order => order.price)
+            ];
+            const minPrice = Math.min(...allPrices);
+            const maxPrice = Math.max(...allPrices);
+            const priceRange = maxPrice - minPrice;
+
+            // Find max quantity for scaling
+            const maxQty = Math.max(
+                ...depthData.sell.map(order => order.quantity),
+                ...depthData.buy.map(order => order.quantity)
+            );
+
+            const padding = 40;
+            const chartWidth = width - 2 * padding;
+            const chartHeight = height - 2 * padding;
+
+            // Draw grid
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let i = 0; i <= 5; i++) {
+                const x = padding + (chartWidth * i) / 5;
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+            }
+
+            // Horizontal grid lines
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight * i) / 5;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw sell orders (red)
+            if (depthData.sell.length > 0) {
+                ctx.fillStyle = 'rgba(220, 53, 69, 0.7)';
+                ctx.strokeStyle = '#dc3545';
+                ctx.lineWidth = 2;
+
+                depthData.sell.forEach((order, index) => {
+                    const x = padding + (chartWidth * (order.price - minPrice)) / priceRange;
+                    const barHeight = (order.quantity / maxQty) * chartHeight * 0.8;
+                    const y = padding + (chartHeight - barHeight) / 2;
+
+                    // Draw bar
+                    ctx.fillRect(x - 10, y, 20, barHeight);
+                    ctx.strokeRect(x - 10, y, 20, barHeight);
+
+                    // Draw price label
+                    ctx.fillStyle = '#dc3545';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(order.price.toFixed(2), x, height - padding + 15);
+                });
+            }
+
+            // Draw buy orders (green)
+            if (depthData.buy.length > 0) {
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.7)';
+                ctx.strokeStyle = '#28a745';
+                ctx.lineWidth = 2;
+
+                depthData.buy.forEach((order, index) => {
+                    const x = padding + (chartWidth * (order.price - minPrice)) / priceRange;
+                    const barHeight = (order.quantity / maxQty) * chartHeight * 0.8;
+                    const y = padding + (chartHeight - barHeight) / 2;
+
+                    // Draw bar
+                    ctx.fillRect(x - 10, y, 20, barHeight);
+                    ctx.strokeRect(x - 10, y, 20, barHeight);
+
+                    // Draw price label
+                    ctx.fillStyle = '#28a745';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(order.price.toFixed(2), x, height - padding + 15);
+                });
+            }
+
+            // Draw axis labels
+            ctx.fillStyle = '#495057';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Price', width / 2, height - 10);
+            
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Quantity', 0, 0);
+            ctx.restore();
+        }
+
+        // Extend the existing handleMessage function to handle depth feed
+        const originalHandleMessage = handleMessage;
+        handleMessage = function(data) {
+            // Call original handler
+            originalHandleMessage(data);
+            
+            // Handle depth feed
+            if (data.t === 'df') {
+                handleDepthFeed(data);
+            }
+        };
+
+        // Initialize market depth when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing market depth');
+            initializeMarketDepth();
+        });
+        
+        // Also initialize when WebSocket connects
+        const originalConnectWSDepth = connectWS;
+        connectWS = function() {
+            const result = originalConnectWSDepth();
+            // Update depth dropdown after connection
+            setTimeout(() => {
+                console.log('WebSocket connected, updating depth dropdown');
+                updateDepthSymbolDropdown();
+            }, 1000);
+            return result;
+        };
+
+        // Update depth symbol dropdown when instruments are added/removed
+        const originalSubscribe = subscribe;
+        subscribe = function(key, tsym) {
+            const result = originalSubscribe(key, tsym);
+            console.log('Subscribe called, updating depth dropdown');
+            updateDepthSymbolDropdown();
+            return result;
+        };
+
+        const originalUnsubscribe = unsubscribe;
+        unsubscribe = function(key) {
+            const result = originalUnsubscribe(key);
+            console.log('Unsubscribe called, updating depth dropdown');
+            updateDepthSymbolDropdown();
+            return result;
+        };
+        // --- End Market Depth Functionality ---
+
+        // Test function to simulate depth data
+        function testDepthData() {
+            const testData = {
+                t: 'df',
+                bp1: '100.50',
+                bq1: '1000',
+                bp2: '100.45',
+                bq2: '1500',
+                bp3: '100.40',
+                bq3: '2000',
+                sp1: '100.55',
+                sq1: '800',
+                sp2: '100.60',
+                sq2: '1200',
+                sp3: '100.65',
+                sq3: '1800'
+            };
+            console.log('Testing with sample depth data:', testData);
+            handleDepthFeed(testData);
+        }
+
+        // Initialize market depth functionality
+
+        // Draw mid price and qty spread % chart
+        function drawMidPriceChart() {
+            const canvas = document.getElementById('midPriceChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            ctx.clearRect(0, 0, width, height);
+
+            // Show "No data" message when no data available
+            if (midPriceHistory.length === 0 || qtySpreadPercentageHistory.length === 0 || priceSpreadPercentageHistory.length === 0) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data available', width / 2, height / 2);
+                return;
+            }
+
+            if (midPriceHistory.length < 2 || qtySpreadPercentageHistory.length < 2 || priceSpreadPercentageHistory.length < 2) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Collecting data...', width / 2, height / 2);
+                return;
+            }
+
+            // --- Mid Price (left Y axis) ---
+            const minPrice = Math.min(...midPriceHistory);
+            const maxPrice = Math.max(...midPriceHistory);
+            const priceRange = maxPrice - minPrice || 1;
+
+            // --- Qty Spread % and Price Spread % (right Y axis) ---
+            const allRightAxisValues = [...qtySpreadPercentageHistory, ...priceSpreadPercentageHistory];
+            const minRight = Math.min(...allRightAxisValues);
+            const maxRight = Math.max(...allRightAxisValues);
+            const rightRange = maxRight - minRight || 1;
+
+            // Draw grid lines
+            ctx.strokeStyle = '#f1f3f4';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 3; i++) {
+                const y = (height * i) / 3;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Draw left Y axis (mid price)
+            ctx.fillStyle = '#007bff';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(maxPrice.toFixed(2), 2, 8);
+            ctx.fillText(minPrice.toFixed(2), 2, height - 2);
+
+            // Draw right Y axis (spread percentages)
+            ctx.fillStyle = '#6f42c1';
+            ctx.textAlign = 'right';
+            ctx.fillText(maxRight.toFixed(2) + '%', width - 2, 8);
+            ctx.fillText(minRight.toFixed(2) + '%', width - 2, height - 2);
+
+            // Draw X axis label
+            ctx.fillStyle = '#888';
+            ctx.textAlign = 'center';
+            ctx.fillText('Last 100 ticks', width / 2, height - 2);
+
+            // Draw mid price line (blue)
+            ctx.strokeStyle = '#007bff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < midPriceHistory.length; i++) {
+                const x = (i / (MID_PRICE_HISTORY_LIMIT - 1)) * width;
+                const y = height - ((midPriceHistory[i] - minPrice) / priceRange) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw qty spread % line (purple)
+            ctx.strokeStyle = '#6f42c1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < qtySpreadPercentageHistory.length; i++) {
+                const x = (i / (MID_PRICE_HISTORY_LIMIT - 1)) * width;
+                const y = height - ((qtySpreadPercentageHistory[i] - minRight) / rightRange) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw price spread % line (green)
+            ctx.strokeStyle = '#28a745';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < priceSpreadPercentageHistory.length; i++) {
+                const x = (i / (MID_PRICE_HISTORY_LIMIT - 1)) * width;
+                const y = height - ((priceSpreadPercentageHistory[i] - minRight) / rightRange) * height;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw legend
+            ctx.font = '10px Arial';
+            ctx.fillStyle = '#007bff';
+            ctx.fillText('Mid Price', 50, 12);
+            ctx.fillStyle = '#6f42c1';
+            ctx.fillText('Qty Spread %', width - 120, 12);
+            ctx.fillStyle = '#28a745';
+            ctx.fillText('Price Spread %', width - 60, 12);
+        }
     </script>
 </body>
 </html>
