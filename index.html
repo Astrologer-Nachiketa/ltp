@@ -1867,9 +1867,17 @@
         .qty-spread-summary {
             border-left: 4px solid #6f42c1;
         }
+        .qty-spread-summary h4,
+        .qty-spread-summary .summary-value {
+            color: #6f42c1;
+        }
 
         .mid-summary {
             border-left: 4px solid #17a2b8;
+        }
+        .mid-summary h4,
+        .mid-summary .summary-value {
+            color: #17a2b8;
         }
 
         .depth-container {
@@ -2177,16 +2185,20 @@
                      <label>&nbsp;</label>
                      <button onclick="updateDepthSymbolDropdown()" class="depth-btn" style="background: #17a2b8; color: white;">Refresh Symbols</button>
                  </div>
+                 <div class="depth-input-group">
+                     <label>&nbsp;</label>
+                     <button onclick="displayDetailedMarketDepth()" class="depth-btn" style="background: #28a745; color: white;">Show Data</button>
+                 </div>
              </div>
 
             <!-- Total Buy/Sell Summary -->
             <div class="depth-summary">
                 <div class="summary-card buy-summary" title="Total quantity of all buy orders across all price levels. Higher values indicate stronger buying pressure.">
-                    <h4>Total Buy Quantity</h4>
+                    <h4>Total Buy Quantity (tbq)</h4>
                     <div class="summary-value" id="totalBuyQty">0</div>
                 </div>
                 <div class="summary-card sell-summary" title="Total quantity of all sell orders across all price levels. Higher values indicate stronger selling pressure.">
-                    <h4>Total Sell Quantity</h4>
+                    <h4>Total Sell Quantity (tsq)</h4>
                     <div class="summary-value" id="totalSellQty">0</div>
                 </div>
                 <div class="summary-card spread-summary" title="Difference between best ask and best bid prices. Lower values indicate tighter spreads and better liquidity.">
@@ -2222,12 +2234,12 @@
                                 <th colspan="3" class="sell-header" title="Sell orders (asks) - prices at which sellers are willing to sell">Sell Orders</th>
                             </tr>
                             <tr>
-                                <th title="Price level for the order">Price</th>
-                                <th title="Quantity available at this price level">Quantity</th>
-                                <th title="Cumulative total quantity from this level and below">Total</th>
-                                <th title="Price level for the order">Price</th>
-                                <th title="Quantity available at this price level">Quantity</th>
-                                <th title="Cumulative total quantity from this level and above">Total</th>
+                                <th title="Price level for the order">Price (bp1-5)</th>
+                                <th title="Quantity available at this price level">Quantity (bq1-5)</th>
+                                <th title="Number of orders at this price level">Orders (bo1-5)</th>
+                                <th title="Price level for the order">Price (sp1-5)</th>
+                                <th title="Quantity available at this price level">Quantity (sq1-5)</th>
+                                <th title="Number of orders at this price level">Orders (so1-5)</th>
                             </tr>
                         </thead>
                         <tbody id="depthTableBody">
@@ -4934,7 +4946,18 @@
             qtySpreadPercentage: 0,
             spread: 0,
             spreadPercentage: 0,
-            midPrice: 0
+            midPrice: 0,
+            // Add the specific field names you requested
+            tbq: 0,
+            tsq: 0,
+            // Buy side data
+            bq1: 0, bq2: 0, bq3: 0, bq4: 0, bq5: 0,
+            bp1: 0, bp2: 0, bp3: 0, bp4: 0, bp5: 0,
+            bo1: 0, bo2: 0, bo3: 0, bo4: 0, bo5: 0,
+            // Sell side data
+            sq1: 0, sq2: 0, sq3: 0, sq4: 0, sq5: 0,
+            sp1: 0, sp2: 0, sp3: 0, sp4: 0, sp5: 0,
+            so1: 0, so2: 0, so3: 0, so4: 0, so5: 0
         };
         let depthUpdateTimeout = null; // For throttling updates
         let midPriceHistory = [];
@@ -4960,7 +4983,18 @@
                     qtySpreadPercentage: 0,
                     spread: 0,
                     spreadPercentage: 0,
-                    midPrice: 0
+                    midPrice: 0,
+                    // Add the specific field names you requested
+                    tbq: 0,
+                    tsq: 0,
+                    // Buy side data
+                    bq1: 0, bq2: 0, bq3: 0, bq4: 0, bq5: 0,
+                    bp1: 0, bp2: 0, bp3: 0, bp4: 0, bp5: 0,
+                    bo1: 0, bo2: 0, bo3: 0, bo4: 0, bo5: 0,
+                    // Sell side data
+                    sq1: 0, sq2: 0, sq3: 0, sq4: 0, sq5: 0,
+                    sp1: 0, sp2: 0, sp3: 0, sp4: 0, sp5: 0,
+                    so1: 0, so2: 0, so3: 0, so4: 0, so5: 0
                 };
                 updateDepthDisplay();
             }
@@ -5024,22 +5058,39 @@
             if (data.t !== 'df') return;
             const buyOrders = [];
             const sellOrders = [];
+            
+            // Extract buy orders (bids)
             for (let i = 1; i <= 5; i++) {
                 const price = data[`bp${i}`];
                 const quantity = data[`bq${i}`];
+                const orders = data[`bo${i}`];
                 if (price && quantity && parseFloat(price) > 0 && parseFloat(quantity) > 0) {
-                    buyOrders.push({ price: parseFloat(price), quantity: parseInt(quantity) });
+                    buyOrders.push({ 
+                        price: parseFloat(price), 
+                        quantity: parseInt(quantity),
+                        orders: parseInt(orders) || 0
+                    });
                 }
             }
+            
+            // Extract sell orders (asks)
             for (let i = 1; i <= 5; i++) {
                 const price = data[`sp${i}`];
                 const quantity = data[`sq${i}`];
+                const orders = data[`so${i}`];
                 if (price && quantity && parseFloat(price) > 0 && parseFloat(quantity) > 0) {
-                    sellOrders.push({ price: parseFloat(price), quantity: parseInt(quantity) });
+                    sellOrders.push({ 
+                        price: parseFloat(price), 
+                        quantity: parseInt(quantity),
+                        orders: parseInt(orders) || 0
+                    });
                 }
             }
+            
             buyOrders.sort((a, b) => b.price - a.price);
             sellOrders.sort((a, b) => a.price - b.price);
+            
+            // Calculate totals
             const totalBuyQty = buyOrders.reduce((sum, order) => sum + order.quantity, 0);
             const totalSellQty = sellOrders.reduce((sum, order) => sum + order.quantity, 0);
             let qtySpread = 0;
@@ -5100,7 +5151,42 @@
                     qtySpreadPercentage: qtySpreadPercentage,
                     spread: spread,
                     spreadPercentage: spreadPercentage,
-                    midPrice: midPrice
+                    midPrice: midPrice,
+                    // Add the specific field names you requested
+                    tbq: totalBuyQty,
+                    tsq: totalSellQty,
+                    // Buy side data
+                    bq1: buyOrders[0]?.quantity || 0,
+                    bq2: buyOrders[1]?.quantity || 0,
+                    bq3: buyOrders[2]?.quantity || 0,
+                    bq4: buyOrders[3]?.quantity || 0,
+                    bq5: buyOrders[4]?.quantity || 0,
+                    bp1: buyOrders[0]?.price || 0,
+                    bp2: buyOrders[1]?.price || 0,
+                    bp3: buyOrders[2]?.price || 0,
+                    bp4: buyOrders[3]?.price || 0,
+                    bp5: buyOrders[4]?.price || 0,
+                    bo1: buyOrders[0]?.orders || 0,
+                    bo2: buyOrders[1]?.orders || 0,
+                    bo3: buyOrders[2]?.orders || 0,
+                    bo4: buyOrders[3]?.orders || 0,
+                    bo5: buyOrders[4]?.orders || 0,
+                    // Sell side data
+                    sq1: sellOrders[0]?.quantity || 0,
+                    sq2: sellOrders[1]?.quantity || 0,
+                    sq3: sellOrders[2]?.quantity || 0,
+                    sq4: sellOrders[3]?.quantity || 0,
+                    sq5: sellOrders[4]?.quantity || 0,
+                    sp1: sellOrders[0]?.price || 0,
+                    sp2: sellOrders[1]?.price || 0,
+                    sp3: sellOrders[2]?.price || 0,
+                    sp4: sellOrders[3]?.price || 0,
+                    sp5: sellOrders[4]?.price || 0,
+                    so1: sellOrders[0]?.orders || 0,
+                    so2: sellOrders[1]?.orders || 0,
+                    so3: sellOrders[2]?.orders || 0,
+                    so4: sellOrders[3]?.orders || 0,
+                    so5: sellOrders[4]?.orders || 0
                 };
                 if (depthUpdateTimeout) {
                     clearTimeout(depthUpdateTimeout);
@@ -5123,6 +5209,9 @@
             drawMidPriceChart();
             updateDepthTable();
             updateDepthChart();
+            
+            // Log the market depth data with the specific field names you requested
+            console.log('Market Depth Update - tbq:', depthData.tbq, 'tsq:', depthData.tsq);
         }
 
         function updateSentimentIndicator() {
@@ -5211,33 +5300,31 @@
                 // Update buy side cells (left side)
                 const buyPriceCell = row.children[0];
                 const buyQtyCell = row.children[1];
-                const buyTotalCell = row.children[2];
+                const buyOrdersCell = row.children[2];
 
                 if (buyOrder) {
-                    const buyTotal = depthData.buy.slice(0, i + 1).reduce((sum, order) => sum + order.quantity, 0);
                     buyPriceCell.innerText = buyOrder.price.toFixed(2);
                     buyQtyCell.innerText = buyOrder.quantity.toLocaleString();
-                    buyTotalCell.innerText = buyTotal.toLocaleString();
+                    buyOrdersCell.innerText = buyOrder.orders.toLocaleString();
                 } else {
                     buyPriceCell.innerText = '';
                     buyQtyCell.innerText = '';
-                    buyTotalCell.innerText = '';
+                    buyOrdersCell.innerText = '';
                 }
 
                 // Update sell side cells (right side)
                 const sellPriceCell = row.children[3];
                 const sellQtyCell = row.children[4];
-                const sellTotalCell = row.children[5];
+                const sellOrdersCell = row.children[5];
 
                 if (sellOrder) {
-                    const sellTotal = depthData.sell.slice(0, i + 1).reduce((sum, order) => sum + order.quantity, 0);
                     sellPriceCell.innerText = sellOrder.price.toFixed(2);
                     sellQtyCell.innerText = sellOrder.quantity.toLocaleString();
-                    sellTotalCell.innerText = sellTotal.toLocaleString();
+                    sellOrdersCell.innerText = sellOrder.orders.toLocaleString();
                 } else {
                     sellPriceCell.innerText = '';
                     sellQtyCell.innerText = '';
-                    sellTotalCell.innerText = '';
+                    sellOrdersCell.innerText = '';
                 }
             }
 
@@ -5429,19 +5516,85 @@
                 t: 'df',
                 bp1: '100.50',
                 bq1: '1000',
+                bo1: '5',
                 bp2: '100.45',
                 bq2: '1500',
+                bo2: '8',
                 bp3: '100.40',
                 bq3: '2000',
+                bo3: '12',
                 sp1: '100.55',
                 sq1: '800',
+                so1: '3',
                 sp2: '100.60',
                 sq2: '1200',
+                so2: '6',
                 sp3: '100.65',
-                sq3: '1800'
+                sq3: '1800',
+                so3: '9'
             };
             console.log('Testing with sample depth data:', testData);
             handleDepthFeed(testData);
+        }
+
+        // Function to display detailed market depth data
+        function displayDetailedMarketDepth() {
+            console.log('=== Market Depth Data ===');
+            console.log('Total Buy Quantity (tbq):', depthData.tbq);
+            console.log('Total Sell Quantity (tsq):', depthData.tsq);
+            console.log('');
+            console.log('=== Buy Side Data ===');
+            console.log('Best Buy Quantity 1 (bq1):', depthData.bq1);
+            console.log('Best Buy Quantity 2 (bq2):', depthData.bq2);
+            console.log('Best Buy Quantity 3 (bq3):', depthData.bq3);
+            console.log('Best Buy Quantity 4 (bq4):', depthData.bq4);
+            console.log('Best Buy Quantity 5 (bq5):', depthData.bq5);
+            console.log('');
+            console.log('Best Buy Price 1 (bp1):', depthData.bp1);
+            console.log('Best Buy Price 2 (bp2):', depthData.bp2);
+            console.log('Best Buy Price 3 (bp3):', depthData.bp3);
+            console.log('Best Buy Price 4 (bp4):', depthData.bp4);
+            console.log('Best Buy Price 5 (bp5):', depthData.bp5);
+            console.log('');
+            console.log('Best Buy Orders 1 (bo1):', depthData.bo1);
+            console.log('Best Buy Orders 2 (bo2):', depthData.bo2);
+            console.log('Best Buy Orders 3 (bo3):', depthData.bo3);
+            console.log('Best Buy Orders 4 (bo4):', depthData.bo4);
+            console.log('Best Buy Orders 5 (bo5):', depthData.bo5);
+            console.log('');
+            console.log('=== Sell Side Data ===');
+            console.log('Best Sell Quantity 1 (sq1):', depthData.sq1);
+            console.log('Best Sell Quantity 2 (sq2):', depthData.sq2);
+            console.log('Best Sell Quantity 3 (sq3):', depthData.sq3);
+            console.log('Best Sell Quantity 4 (sq4):', depthData.sq4);
+            console.log('Best Sell Quantity 5 (sq5):', depthData.sq5);
+            console.log('');
+            console.log('Best Sell Price 1 (sp1):', depthData.sp1);
+            console.log('Best Sell Price 2 (sp2):', depthData.sp2);
+            console.log('Best Sell Price 3 (sp3):', depthData.sp3);
+            console.log('Best Sell Price 4 (sp4):', depthData.sp4);
+            console.log('Best Sell Price 5 (sp5):', depthData.sp5);
+            console.log('');
+            console.log('Best Sell Orders 1 (so1):', depthData.so1);
+            console.log('Best Sell Orders 2 (so2):', depthData.so2);
+            console.log('Best Sell Orders 3 (so3):', depthData.so3);
+            console.log('Best Sell Orders 4 (so4):', depthData.so4);
+            console.log('Best Sell Orders 5 (so5):', depthData.so5);
+            console.log('=== End Market Depth Data ===');
+        }
+
+        // Function to get market depth data as an object
+        function getMarketDepthData() {
+            return {
+                tbq: depthData.tbq,
+                tsq: depthData.tsq,
+                bq1: depthData.bq1, bq2: depthData.bq2, bq3: depthData.bq3, bq4: depthData.bq4, bq5: depthData.bq5,
+                bp1: depthData.bp1, bp2: depthData.bp2, bp3: depthData.bp3, bp4: depthData.bp4, bp5: depthData.bp5,
+                bo1: depthData.bo1, bo2: depthData.bo2, bo3: depthData.bo3, bo4: depthData.bo4, bo5: depthData.bo5,
+                sq1: depthData.sq1, sq2: depthData.sq2, sq3: depthData.sq3, sq4: depthData.sq4, sq5: depthData.sq5,
+                sp1: depthData.sp1, sp2: depthData.sp2, sp3: depthData.sp3, sp4: depthData.sp4, sp5: depthData.sp5,
+                so1: depthData.so1, so2: depthData.so2, so3: depthData.so3, so4: depthData.so4, so5: depthData.so5
+            };
         }
 
         // Initialize market depth functionality
