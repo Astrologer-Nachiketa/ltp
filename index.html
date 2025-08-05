@@ -2335,6 +2335,7 @@
                         <option value="sell_below">Sell Below</option>
                                 <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
                                 <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
+                        <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct">EMA > SMA and (EMA - LTP &gt; 1%)</option>
                     </select>
                 </div>
 
@@ -2371,6 +2372,7 @@
                                         <option value="sell_below">Sell Below</option>
                                         <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
                                         <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
+                                        <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct">EMA > SMA and (EMA - LTP &gt; 1%)</option>
                                     </select>
                                 </div>
                                 <div class="input-group">
@@ -3257,6 +3259,7 @@
                             <option value="sell_below" ${script.triggerType === 'sell_below' ? 'selected' : ''}>Sell Below</option>
                             <option value="buy_green_ltp_lt_sma" ${script.triggerType === 'buy_green_ltp_lt_sma' ? 'selected' : ''}>Buy LTP>High<SMA</option>
                             <option value="buy_ltp_gt_ema_gt_sma" ${script.triggerType === 'buy_ltp_gt_ema_gt_sma' ? 'selected' : ''}>Buy LTP>EMA>SMA</option>
+                            <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct" ${script.triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' ? 'selected' : ''}>EMA > SMA and (EMA - LTP &gt; 1%)</option>
                         </select>
                         <button class="arm-trigger">Arm Trigger</button>
                     </td>
@@ -3304,7 +3307,7 @@
                     }
                     
                     // Check if this is one of our custom triggers that doesn't need a trigger value
-                    const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+                    const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma' || triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
                     
                     // Determine the source of the trigger value (only for standard triggers)
                     if (!isCustomTrigger) {
@@ -3408,6 +3411,12 @@
                                 const emaValue = parseFloat(button.closest('tr').querySelector('td:nth-child(11)').innerText);
                                 const smaValue = parseFloat(button.closest('tr').querySelector('td:nth-child(12)').innerText);
                                 conditionMet = ltp > emaValue && emaValue > smaValue;
+                                break;
+                            case 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct': 
+                                const emaValue2 = parseFloat(button.closest('tr').querySelector('td:nth-child(11)').innerText);
+                                const smaValue2 = parseFloat(button.closest('tr').querySelector('td:nth-child(12)').innerText);
+                                const ltpValue2 = parseFloat(button.closest('tr').querySelector('td:nth-child(3)').innerText.replace(/,/g, ''));
+                                conditionMet = emaValue2 > smaValue2 && emaValue2 - ltpValue2 > 0.01 * ltpValue2;
                                 break;
                         }
 
@@ -3579,7 +3588,7 @@
                     }
                     
                     // Check if this is one of our custom triggers that doesn't need a trigger value
-                    const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+                    const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma' || triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
                     
                     // Determine the source of the trigger value (only for standard triggers)
                     if (!isCustomTrigger) {
@@ -3682,6 +3691,12 @@
                                 const emaValue = parseFloat(row.querySelector('td:nth-child(11)').innerText);
                                 const smaValue = parseFloat(row.querySelector('td:nth-child(12)').innerText);
                                 conditionMet = ltp > emaValue && emaValue > smaValue;
+                                break;
+                            case 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct': 
+                                const emaValue3 = parseFloat(row.querySelector('td:nth-child(11)').innerText);
+                                const smaValue3 = parseFloat(row.querySelector('td:nth-child(12)').innerText);
+                                const ltpValue3 = parseFloat(row.querySelector('td:nth-child(3)').innerText.replace(/,/g, ''));
+                                conditionMet = emaValue3 > smaValue3 && emaValue3 - ltpValue3 > 0.01 * ltpValue3;
                                 break;
                         }
 
@@ -3823,7 +3838,7 @@
                 else if (triggerValueSource === 'hist_high') currentTriggerValue = histHigh;
                 else if (triggerValueSource === 'hist_low') currentTriggerValue = histLow;
 
-                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma';
+                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma' || triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
 
                 // Ensure the comparison value is a number for standard triggers
                 if (!isCustomTrigger && isNaN(currentTriggerValue)) return { met: false, value: NaN };
@@ -3843,6 +3858,9 @@
                         break;
                     case 'buy_ltp_gt_ema_gt_sma': // "LTP>EMA>SMA"
                         conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma;
+                        break;
+                    case 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct': 
+                        conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma && ema - currentLtp > 0.01 * currentLtp;
                         break;
                     case 'no_trigger':
                         conditionMet = true; // Always true
@@ -4359,12 +4377,12 @@
                         }
 
                         // --- Validation for Triggered Order --- 
-                        const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma';
+                        const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma' || params.triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
                         if (!isTrigger1Custom && params.triggerValueSource === 'fixed' && isNaN(params.triggerValue)) {
                             throw new Error("Please enter a valid trigger 1 value (required for non-custom trigger types with fixed source).");
                         }
                         if (params.triggerType2 !== 'no_trigger') {
-                            const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma';
+                            const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma' || params.triggerType2 === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
                             if (!isTrigger2Custom && params.triggerValueSource2 === 'fixed' && isNaN(params.triggerValue2)) {
                                 throw new Error("Please enter a valid trigger 2 value (required for non-custom trigger types with fixed source).");
                             }
