@@ -2355,6 +2355,11 @@
                     <input type="number" id="algoTriggerValue" class="algo-input" step="0.01" placeholder="Enter trigger value">
                 </div>
                 
+                <div class="input-group" id="emaPercentageGroup" style="display: none;">
+                    <label class="algo-label">EMA-LTP %</label>
+                    <input type="number" id="emaPercentageValue" class="algo-input" step="0.1" placeholder="Enter percentage (e.g., 1 for 1%)" value="1">
+                </div>
+                
                         <!-- Add Second Trigger Set -->
                         <!-- NEW Container for the THREE condition columns -->
                         <div class="multi-conditions-container">
@@ -2388,6 +2393,11 @@
                                 <div class="input-group">
                                     <label class="algo-label">Trigger 2 Value</label>
                                     <input type="number" id="algoTriggerValue2" class="algo-input" step="0.01" placeholder="Enter trigger 2 value">
+                                </div>
+                                
+                                <div class="input-group" id="emaPercentageGroup2" style="display: none;">
+                                    <label class="algo-label">EMA-LTP %</label>
+                                    <input type="number" id="emaPercentageValue2" class="algo-input" step="0.1" placeholder="Enter percentage (e.g., 1 for 1%)" value="1">
                                 </div>
                             </div> <!-- End Column 1 -->
 
@@ -3416,7 +3426,9 @@
                                 const emaValue2 = parseFloat(button.closest('tr').querySelector('td:nth-child(11)').innerText);
                                 const smaValue2 = parseFloat(button.closest('tr').querySelector('td:nth-child(12)').innerText);
                                 const ltpValue2 = parseFloat(button.closest('tr').querySelector('td:nth-child(3)').innerText.replace(/,/g, ''));
-                                conditionMet = emaValue2 > smaValue2 && emaValue2 - ltpValue2 > 0.01 * ltpValue2;
+                                const percentageValue2 = parseFloat(document.getElementById('emaPercentageValue')?.value || 1);
+                                const percentageThreshold2 = percentageValue2 / 100; // Convert to decimal (1% = 0.01)
+                                conditionMet = emaValue2 > smaValue2 && (emaValue2 - ltpValue2) > (percentageThreshold2 * ltpValue2);
                                 break;
                         }
 
@@ -3696,7 +3708,9 @@
                                 const emaValue3 = parseFloat(row.querySelector('td:nth-child(11)').innerText);
                                 const smaValue3 = parseFloat(row.querySelector('td:nth-child(12)').innerText);
                                 const ltpValue3 = parseFloat(row.querySelector('td:nth-child(3)').innerText.replace(/,/g, ''));
-                                conditionMet = emaValue3 > smaValue3 && emaValue3 - ltpValue3 > 0.01 * ltpValue3;
+                                const percentageValue3 = parseFloat(document.getElementById('emaPercentageValue')?.value || 1);
+                                const percentageThreshold3 = percentageValue3 / 100; // Convert to decimal (1% = 0.01)
+                                conditionMet = emaValue3 > smaValue3 && (emaValue3 - ltpValue3) > (percentageThreshold3 * ltpValue3);
                                 break;
                         }
 
@@ -3822,7 +3836,7 @@
             let nextPendingTriggerId = 1;
 
             // --- Helper: Evaluate a single trigger's conditions ---
-            const evaluateSingleTrigger = (triggerType, triggerValueSource, triggerValue, scriptData) => {
+            const evaluateSingleTrigger = (triggerType, triggerValueSource, triggerValue, scriptData, emaPercentage = 1) => {
                 let currentTriggerValue = triggerValue;
                 const currentLtp = parseFloat(scriptData?.data?.lp);
                 const sma = parseFloat(scriptData?.sma);
@@ -3860,7 +3874,8 @@
                         conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma;
                         break;
                     case 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct': 
-                        conditionMet = !isNaN(ema) && !isNaN(sma) && currentLtp > ema && ema > sma && ema - currentLtp > 0.01 * currentLtp;
+                        const percentageThreshold = emaPercentage / 100; // Convert to decimal (1% = 0.01)
+                        conditionMet = !isNaN(ema) && !isNaN(sma) && ema > sma && (ema - currentLtp) > (percentageThreshold * currentLtp);
                         break;
                     case 'no_trigger':
                         conditionMet = true; // Always true
@@ -4015,14 +4030,14 @@
                         const { params } = triggerInfo; // Get the trigger's specific parameters
 
                         // Evaluate using the trigger's params and the UPDATED script data (which IS the correct data for this symbol)
-                        const result1 = evaluateSingleTrigger(params.triggerType, params.triggerValueSource, params.triggerValue, updatedScriptData);
+                        const result1 = evaluateSingleTrigger(params.triggerType, params.triggerValueSource, params.triggerValue, updatedScriptData, params.emaPercentageValue);
                         let trigger1Met = result1.met;
                         debugLog(`#${triggerId} Trigger 1 (${params.triggerType}): Met = ${trigger1Met}`, 'info');
 
                         // Evaluate Trigger 2 (if active), also using the updatedScriptData
                         let trigger2Met = true;
                         if (params.triggerType2 !== 'no_trigger') {
-                            const result2 = evaluateSingleTrigger(params.triggerType2, params.triggerValueSource2, params.triggerValue2, updatedScriptData);
+                            const result2 = evaluateSingleTrigger(params.triggerType2, params.triggerValueSource2, params.triggerValue2, updatedScriptData, params.emaPercentageValue2);
                             trigger2Met = result2.met;
                             debugLog(`#${triggerId} Trigger 2 (${params.triggerType2}): Met = ${trigger2Met}`, 'info');
                         }
@@ -4359,9 +4374,11 @@
                             triggerType: document.getElementById("algoTriggerType").value,
                             triggerValue: parseFloat(document.getElementById("algoTriggerValue").value),
                             triggerValueSource: document.getElementById("algoTriggerValueSource").value,
+                            emaPercentageValue: parseFloat(document.getElementById("emaPercentageValue")?.value || 1),
                             triggerType2: document.getElementById("algoTriggerType2").value,
                             triggerValue2: parseFloat(document.getElementById("algoTriggerValue2").value),
                             triggerValueSource2: document.getElementById("algoTriggerValueSource2").value,
+                            emaPercentageValue2: parseFloat(document.getElementById("emaPercentageValue2")?.value || 1),
                             requireTvCondition: document.getElementById("requireTvCondition").checked,
                             tvConditionSymbol: document.getElementById("tvConditionSymbolSelect").value,
                             requireSignalCondition: document.getElementById("requireSignalCondition").checked, // Add this
@@ -4622,6 +4639,25 @@
             
             // Initialize Algo Trading System
             OrderSystem.init();
+            
+            // Add trigger type change handlers for percentage input visibility
+            document.getElementById('algoTriggerType').addEventListener('change', function() {
+                const percentageGroup = document.getElementById('emaPercentageGroup');
+                if (this.value === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct') {
+                    percentageGroup.style.display = 'flex';
+                } else {
+                    percentageGroup.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('algoTriggerType2').addEventListener('change', function() {
+                const percentageGroup = document.getElementById('emaPercentageGroup2');
+                if (this.value === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct') {
+                    percentageGroup.style.display = 'flex';
+                } else {
+                    percentageGroup.style.display = 'none';
+                }
+            });
 
             // Populate TV Symbol Dropdown initially
             updateTvConditionSymbolDropdown();
