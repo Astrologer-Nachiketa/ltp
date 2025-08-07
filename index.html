@@ -1768,7 +1768,7 @@
 
         .depth-summary {
             display: grid;
-            grid-template-columns: repeat(9, 1fr);
+            grid-template-columns: repeat(10, 1fr);
             gap: 6px;
             margin-bottom: 10px;
         }
@@ -1866,6 +1866,15 @@
 
         .qty-spread-summary {
             border-left: 4px solid #6f42c1;
+        }
+
+        .trade-ratio-ema-sma {
+            border-left: 4px solid #17a2b8;
+        }
+
+        .trade-ratio-ema-sma .summary-value {
+            font-size: 12px;
+            font-weight: bold;
         }
         .qty-spread-summary h4,
         .qty-spread-summary .summary-value {
@@ -2282,6 +2291,10 @@
                 <div class="summary-card trade-ratio-summary" title="Ratio of buyer to seller initiated trades. Values > 1 indicate buyer dominance, < 1 indicate seller dominance.">
                     <h4>Trade Ratio (B/S)</h4>
                     <div class="summary-value" id="tradeRatio">0.00</div>
+                </div>
+                <div class="summary-card trade-ratio-ema-sma" title="EMA and SMA of Trade Ratio (B/S). Green when EMA > SMA (bullish), Red when EMA < SMA (bearish).">
+                    <h4>Trade Ratio EMA/SMA</h4>
+                    <div class="summary-value" id="tradeRatioEmaSma">0.00 / 0.00</div>
                 </div>
             </div>
             <div class="midprice-chart-container" title="Live chart showing the last 100 mid price movements. Helps identify price trends and volatility.">
@@ -3113,39 +3126,62 @@
                 
                 // Only track trades when we have valid bid/ask data
                 if (bestBid > 0 && bestAsk > 0) {
+                    let tradeType = null;
+                    
                     // Check if the trade was initiated by a buyer
                     // This happens when a market buy order hits the best ask price or higher.
                     if (currentLtp >= bestAsk) {
-                        tradeInitiationData.buyerInitiatedCount++;
-                        console.log(`[BUYER INITIATED] New trade at ${currentLtp}. Current counts: Buyers=${tradeInitiationData.buyerInitiatedCount}, Sellers=${tradeInitiationData.sellerInitiatedCount}`);
+                        tradeType = 'buyer';
+                        console.log(`[BUYER INITIATED] New trade at ${currentLtp}`);
                     } 
                     // Check if the trade was initiated by a seller
                     // This happens when a market sell order hits the best bid price or lower.
                     else if (currentLtp <= bestBid) {
-                        tradeInitiationData.sellerInitiatedCount++;
-                        console.log(`[SELLER INITIATED] New trade at ${currentLtp}. Current counts: Buyers=${tradeInitiationData.buyerInitiatedCount}, Sellers=${tradeInitiationData.sellerInitiatedCount}`);
-                    }
-                }
-                
-                // Add to trade history (last 200 ticks) only when we have valid bid/ask data
-                if (bestBid > 0 && bestAsk > 0) {
-                    const tradeRecord = {
-                        timestamp: Date.now(),
-                        price: currentLtp,
-                        previousPrice: previousLtp,
-                        buyerInitiated: currentLtp >= bestAsk,
-                        sellerInitiated: currentLtp <= bestBid,
-                        bestBid: bestBid,
-                        bestAsk: bestAsk
-                    };
-                    
-                    tradeInitiationData.tradeHistory.push(tradeRecord);
-                    if (tradeInitiationData.tradeHistory.length > 200) {
-                        tradeInitiationData.tradeHistory.shift(); // Remove oldest record
+                        tradeType = 'seller';
+                        console.log(`[SELLER INITIATED] New trade at ${currentLtp}`);
                     }
                     
-                    // Update trade initiation chart if we're on the market depth tab
-                    updateTradeInitiationChart();
+                    // Add to trade history (last 200 ticks) only when we have valid bid/ask data
+                    if (tradeType) {
+                        const tradeRecord = {
+                            timestamp: Date.now(),
+                            price: currentLtp,
+                            previousPrice: previousLtp,
+                            buyerInitiated: tradeType === 'buyer',
+                            sellerInitiated: tradeType === 'seller',
+                            bestBid: bestBid,
+                            bestAsk: bestAsk,
+                            tradeType: tradeType
+                        };
+                        
+                        tradeInitiationData.tradeHistory.push(tradeRecord);
+                        if (tradeInitiationData.tradeHistory.length > 200) {
+                            tradeInitiationData.tradeHistory.shift(); // Remove oldest record
+                        }
+                        
+                        // Calculate current trade counts from the last 200 ticks
+                        const recentTrades = tradeInitiationData.tradeHistory;
+                        const buyerCount = recentTrades.filter(trade => trade.buyerInitiated).length;
+                        const sellerCount = recentTrades.filter(trade => trade.sellerInitiated).length;
+                        
+                        // Calculate current trade ratio
+                        const currentRatio = sellerCount > 0 ? buyerCount / sellerCount : 0;
+                        
+                        // Add to trade ratio history for EMA/SMA calculation
+                        tradeInitiationData.tradeRatioHistory.push(currentRatio);
+                        if (tradeInitiationData.tradeRatioHistory.length > 200) {
+                            tradeInitiationData.tradeRatioHistory.shift(); // Keep only last 200 ratios
+                        }
+                        
+                        // Update counts for display
+                        tradeInitiationData.buyerInitiatedCount = buyerCount;
+                        tradeInitiationData.sellerInitiatedCount = sellerCount;
+                        
+                        console.log(`[TRADE UPDATE] Buyers: ${buyerCount}, Sellers: ${sellerCount}, Ratio: ${currentRatio.toFixed(2)}`);
+                        
+                        // Update trade initiation chart if we're on the market depth tab
+                        updateTradeInitiationChart();
+                    }
                 }
             }
             
@@ -3169,6 +3205,21 @@
         function calculateSMA(data) {
             if (!data || data.length === 0) return 0;
             return data.reduce((a, b) => a + b, 0) / data.length;
+        }
+
+        // Calculate Exponential Moving Average
+        function calculateEMA(data, period = 20) {
+            if (!data || data.length === 0) return 0;
+            if (data.length < period) return calculateSMA(data); // Use SMA if not enough data
+            
+            const multiplier = 2 / (period + 1);
+            let ema = data[0]; // Start with first value
+            
+            for (let i = 1; i < data.length; i++) {
+                ema = (data[i] * multiplier) + (ema * (1 - multiplier));
+            }
+            
+            return ema;
         }
 
         // Trading Functions
@@ -5134,6 +5185,7 @@
             buyerInitiatedCount: 0,
             sellerInitiatedCount: 0,
             tradeHistory: [], // Store last 200 ticks
+            tradeRatioHistory: [], // Store trade ratios for EMA/SMA calculation
             previousLtp: null,
             currentSymbol: null
         };
@@ -5181,6 +5233,7 @@
                     buyerInitiatedCount: 0,
                     sellerInitiatedCount: 0,
                     tradeHistory: [],
+                    tradeRatioHistory: [],
                     previousLtp: null,
                     currentSymbol: scriptKey
                 };
@@ -5536,6 +5589,30 @@
             const ratio = tradeInitiationData.sellerInitiatedCount > 0 ? 
                 (tradeInitiationData.buyerInitiatedCount / tradeInitiationData.sellerInitiatedCount).toFixed(2) : '0.00';
             document.getElementById('tradeRatio').innerText = ratio;
+            
+            // Calculate EMA and SMA of trade ratio
+            const ema = calculateEMA(tradeInitiationData.tradeRatioHistory, 20);
+            const sma = calculateSMA(tradeInitiationData.tradeRatioHistory);
+            
+            // Update EMA/SMA display with color coding
+            const emaSmaElement = document.getElementById('tradeRatioEmaSma');
+            if (emaSmaElement) {
+                if (tradeInitiationData.tradeRatioHistory.length === 0) {
+                    emaSmaElement.innerText = '0.00 / 0.00';
+                    emaSmaElement.style.color = '#6c757d'; // Gray
+                } else {
+                    emaSmaElement.innerText = `${ema.toFixed(2)} / ${sma.toFixed(2)}`;
+                    
+                    // Color coding: Green if EMA > SMA (bullish), Red if EMA < SMA (bearish)
+                    if (ema > sma) {
+                        emaSmaElement.style.color = '#28a745'; // Green
+                    } else if (ema < sma) {
+                        emaSmaElement.style.color = '#dc3545'; // Red
+                    } else {
+                        emaSmaElement.style.color = '#6c757d'; // Gray (equal)
+                    }
+                }
+            }
 
             const ctx = canvas.getContext('2d');
             const width = canvas.width;
