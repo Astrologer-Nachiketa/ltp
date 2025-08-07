@@ -1768,15 +1768,15 @@
 
         .depth-summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 6px;
             margin-bottom: 10px;
         }
 
         .summary-card {
             background: white;
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 4px;
+            padding: 6px;
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             border: 1px solid #e9ecef;
@@ -1834,22 +1834,22 @@
         }
 
         .summary-card h4 {
-            margin: 0 0 5px 0;
-            font-size: 12px;
+            margin: 0 0 3px 0;
+            font-size: 10px;
             color: #6c757d;
         }
 
         .summary-value {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: #212529;
             transition: all 0.3s ease;
         }
 
         .summary-subtitle {
-            font-size: 11px;
+            font-size: 9px;
             color: #6c757d;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .buy-summary {
@@ -1969,6 +1969,33 @@
             border-radius: 4px;
         }
 
+        .trade-initiation-container {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+            margin-top: 15px;
+        }
+
+        .trade-initiation-container h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+
+
+        #tradeInitiationChart {
+            width: 100%;
+            max-width: 800px;
+            height: 87px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+
         .depth-row {
             display: flex;
             align-items: center;
@@ -2012,7 +2039,20 @@
             }
             
             .depth-summary {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+            }
+            
+            .summary-card h4 {
+                font-size: 9px;
+            }
+            
+            .summary-value {
+                font-size: 12px;
+            }
+            
+            .summary-subtitle {
+                font-size: 8px;
             }
             
             .depth-table {
@@ -2027,6 +2067,18 @@
 
         .sentiment-summary {
             border-left: 4px solid #007bff;
+        }
+        
+        .buyer-initiated-summary {
+            border-left: 4px solid #28a745;
+        }
+        
+        .seller-initiated-summary {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .trade-ratio-summary {
+            border-left: 4px solid #ffc107;
         }
         .midprice-chart-container {
             width: 100%;
@@ -2219,6 +2271,18 @@
                     <h4>Sentiment</h4>
                     <div class="summary-value" id="sentimentValue">-</div>
                 </div>
+                <div class="summary-card buyer-initiated-summary" title="Number of trades initiated by buyers (market buy orders hitting ask price or higher).">
+                    <h4>Buyer Initiated</h4>
+                    <div class="summary-value" id="buyerInitiatedCount">0</div>
+                </div>
+                <div class="summary-card seller-initiated-summary" title="Number of trades initiated by sellers (market sell orders hitting bid price or lower).">
+                    <h4>Seller Initiated</h4>
+                    <div class="summary-value" id="sellerInitiatedCount">0</div>
+                </div>
+                <div class="summary-card trade-ratio-summary" title="Ratio of buyer to seller initiated trades. Values > 1 indicate buyer dominance, < 1 indicate seller dominance.">
+                    <h4>Trade Ratio (B/S)</h4>
+                    <div class="summary-value" id="tradeRatio">0.00</div>
+                </div>
             </div>
             <div class="midprice-chart-container" title="Live chart showing the last 100 mid price movements. Helps identify price trends and volatility.">
                 <canvas id="midPriceChart" width="300" height="60"></canvas>
@@ -2249,10 +2313,10 @@
                 </div>
             </div>
 
-            <!-- Depth Chart Visualization -->
-            <div class="depth-chart-container">
-                <h4>Depth Chart</h4>
-                <canvas id="depthChart" width="800" height="400"></canvas>
+            <!-- Trade Initiation Chart -->
+            <div class="trade-initiation-container">
+                <h4>Buyer vs Seller Initiated Trades (Last 200 Ticks)</h4>
+                <canvas id="tradeInitiationChart" width="800" height="400"></canvas>
             </div>
         </div>
 
@@ -3037,6 +3101,57 @@
                  OrderSystem.checkPendingTriggersForSymbol(scriptKey, script);
             } 
             // --- End Trigger Check --- 
+
+            // --- Buyer/Seller Initiated Trade Tracking ---
+            if (!isNaN(ltp) && tradeInitiationData.previousLtp !== null && tradeInitiationData.previousLtp !== ltp) {
+                const currentLtp = ltp;
+                const previousLtp = tradeInitiationData.previousLtp;
+                
+                // Get current best bid and ask from depth data
+                const bestBid = depthData.bp1 || 0;
+                const bestAsk = depthData.sp1 || 0;
+                
+                // Only track trades when we have valid bid/ask data
+                if (bestBid > 0 && bestAsk > 0) {
+                    // Check if the trade was initiated by a buyer
+                    // This happens when a market buy order hits the best ask price or higher.
+                    if (currentLtp >= bestAsk) {
+                        tradeInitiationData.buyerInitiatedCount++;
+                        console.log(`[BUYER INITIATED] New trade at ${currentLtp}. Current counts: Buyers=${tradeInitiationData.buyerInitiatedCount}, Sellers=${tradeInitiationData.sellerInitiatedCount}`);
+                    } 
+                    // Check if the trade was initiated by a seller
+                    // This happens when a market sell order hits the best bid price or lower.
+                    else if (currentLtp <= bestBid) {
+                        tradeInitiationData.sellerInitiatedCount++;
+                        console.log(`[SELLER INITIATED] New trade at ${currentLtp}. Current counts: Buyers=${tradeInitiationData.buyerInitiatedCount}, Sellers=${tradeInitiationData.sellerInitiatedCount}`);
+                    }
+                }
+                
+                // Add to trade history (last 200 ticks) only when we have valid bid/ask data
+                if (bestBid > 0 && bestAsk > 0) {
+                    const tradeRecord = {
+                        timestamp: Date.now(),
+                        price: currentLtp,
+                        previousPrice: previousLtp,
+                        buyerInitiated: currentLtp >= bestAsk,
+                        sellerInitiated: currentLtp <= bestBid,
+                        bestBid: bestBid,
+                        bestAsk: bestAsk
+                    };
+                    
+                    tradeInitiationData.tradeHistory.push(tradeRecord);
+                    if (tradeInitiationData.tradeHistory.length > 200) {
+                        tradeInitiationData.tradeHistory.shift(); // Remove oldest record
+                    }
+                    
+                    // Update trade initiation chart if we're on the market depth tab
+                    updateTradeInitiationChart();
+                }
+            }
+            
+            // Update previous LTP for next comparison
+            tradeInitiationData.previousLtp = ltp;
+            // --- End Buyer/Seller Initiated Trade Tracking --- 
 
             // Rest of the existing updateMarketData code... (This part was previously removed, adding back for context)
             /*
@@ -5013,6 +5128,16 @@
             sp1: 0, sp2: 0, sp3: 0, sp4: 0, sp5: 0,
             so1: 0, so2: 0, so3: 0, so4: 0, so5: 0
         };
+        
+        // Buyer/Seller initiated trade tracking
+        let tradeInitiationData = {
+            buyerInitiatedCount: 0,
+            sellerInitiatedCount: 0,
+            tradeHistory: [], // Store last 200 ticks
+            previousLtp: null,
+            currentSymbol: null
+        };
+        
         let depthUpdateTimeout = null; // For throttling updates
         let midPriceHistory = [];
         let qtySpreadPercentageHistory = [];
@@ -5050,7 +5175,18 @@
                     sp1: 0, sp2: 0, sp3: 0, sp4: 0, sp5: 0,
                     so1: 0, so2: 0, so3: 0, so4: 0, so5: 0
                 };
+                
+                // Reset trade initiation data for new symbol
+                tradeInitiationData = {
+                    buyerInitiatedCount: 0,
+                    sellerInitiatedCount: 0,
+                    tradeHistory: [],
+                    previousLtp: null,
+                    currentSymbol: scriptKey
+                };
+                
                 updateDepthDisplay();
+                updateTradeInitiationChart();
             }
 
             if (currentDepthSubscription && ws && ws.readyState === WebSocket.OPEN) {
@@ -5262,7 +5398,7 @@
             updateSentimentIndicator();
             drawMidPriceChart();
             updateDepthTable();
-            updateDepthChart();
+            updateTradeInitiationChart();
             
             // Log the market depth data with the specific field names you requested
             console.log('Market Depth Update - tbq:', depthData.tbq, 'tsq:', depthData.tsq);
@@ -5388,17 +5524,18 @@
             }
         }
 
-        // Update depth chart
-        function updateDepthChart() {
-            const canvas = document.getElementById('depthChart');
+        // Update trade initiation chart
+        function updateTradeInitiationChart() {
+            const canvas = document.getElementById('tradeInitiationChart');
             if (!canvas) return;
 
-            // Check if data has actually changed to prevent unnecessary redraws
-            const currentData = JSON.stringify(depthData);
-            if (canvas.lastData === currentData) {
-                return; // Data hasn't changed, skip redraw
-            }
-            canvas.lastData = currentData;
+            // Update statistics display in summary cards
+            document.getElementById('buyerInitiatedCount').innerText = tradeInitiationData.buyerInitiatedCount;
+            document.getElementById('sellerInitiatedCount').innerText = tradeInitiationData.sellerInitiatedCount;
+            
+            const ratio = tradeInitiationData.sellerInitiatedCount > 0 ? 
+                (tradeInitiationData.buyerInitiatedCount / tradeInitiationData.sellerInitiatedCount).toFixed(2) : '0.00';
+            document.getElementById('tradeRatio').innerText = ratio;
 
             const ctx = canvas.getContext('2d');
             const width = canvas.width;
@@ -5407,31 +5544,16 @@
             // Clear canvas
             ctx.clearRect(0, 0, width, height);
 
-            if (depthData.sell.length === 0 && depthData.buy.length === 0) {
+            if (tradeInitiationData.tradeHistory.length === 0) {
                 // Draw "No Data" message
                 ctx.fillStyle = '#6c757d';
-                ctx.font = '16px Arial';
+                ctx.font = '14px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('No market depth data available', width / 2, height / 2);
+                ctx.fillText('No trade data', width / 2, height / 2);
                 return;
             }
 
-            // Find price range
-            const allPrices = [
-                ...depthData.sell.map(order => order.price),
-                ...depthData.buy.map(order => order.price)
-            ];
-            const minPrice = Math.min(...allPrices);
-            const maxPrice = Math.max(...allPrices);
-            const priceRange = maxPrice - minPrice;
-
-            // Find max quantity for scaling
-            const maxQty = Math.max(
-                ...depthData.sell.map(order => order.quantity),
-                ...depthData.buy.map(order => order.quantity)
-            );
-
-            const padding = 40;
+            const padding = 20;
             const chartWidth = width - 2 * padding;
             const chartHeight = height - 2 * padding;
 
@@ -5439,7 +5561,7 @@
             ctx.strokeStyle = '#e9ecef';
             ctx.lineWidth = 1;
             
-            // Vertical grid lines
+            // Vertical grid lines (time axis) - reduced for smaller chart
             for (let i = 0; i <= 5; i++) {
                 const x = padding + (chartWidth * i) / 5;
                 ctx.beginPath();
@@ -5448,71 +5570,100 @@
                 ctx.stroke();
             }
 
-            // Horizontal grid lines
-            for (let i = 0; i <= 5; i++) {
-                const y = padding + (chartHeight * i) / 5;
+            // Horizontal grid lines (price axis) - reduced for smaller chart
+            for (let i = 0; i <= 3; i++) {
+                const y = padding + (chartHeight * i) / 3;
                 ctx.beginPath();
                 ctx.moveTo(padding, y);
                 ctx.lineTo(width - padding, y);
                 ctx.stroke();
             }
 
-            // Draw sell orders (red)
-            if (depthData.sell.length > 0) {
-                ctx.fillStyle = 'rgba(220, 53, 69, 0.7)';
-                ctx.strokeStyle = '#dc3545';
-                ctx.lineWidth = 2;
+            // Find price range for scaling
+            const allPrices = tradeInitiationData.tradeHistory.map(trade => trade.price);
+            const minPrice = Math.min(...allPrices);
+            const maxPrice = Math.max(...allPrices);
+            const priceRange = maxPrice - minPrice || 1;
 
-                depthData.sell.forEach((order, index) => {
-                    const x = padding + (chartWidth * (order.price - minPrice)) / priceRange;
-                    const barHeight = (order.quantity / maxQty) * chartHeight * 0.8;
-                    const y = padding + (chartHeight - barHeight) / 2;
+            // Draw trade history
+            const historyLength = tradeInitiationData.tradeHistory.length;
+            const maxDisplayTrades = Math.min(200, historyLength);
 
-                    // Draw bar
-                    ctx.fillRect(x - 10, y, 20, barHeight);
-                    ctx.strokeRect(x - 10, y, 20, barHeight);
+            for (let i = 0; i < maxDisplayTrades; i++) {
+                const trade = tradeInitiationData.tradeHistory[historyLength - maxDisplayTrades + i];
+                const x = padding + (chartWidth * i) / maxDisplayTrades;
+                const y = height - padding - ((trade.price - minPrice) / priceRange) * chartHeight;
 
-                    // Draw price label
-                    ctx.fillStyle = '#dc3545';
-                    ctx.font = '12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(order.price.toFixed(2), x, height - padding + 15);
-                });
-            }
-
-            // Draw buy orders (green)
-            if (depthData.buy.length > 0) {
-                ctx.fillStyle = 'rgba(40, 167, 69, 0.7)';
-                ctx.strokeStyle = '#28a745';
-                ctx.lineWidth = 2;
-
-                depthData.buy.forEach((order, index) => {
-                    const x = padding + (chartWidth * (order.price - minPrice)) / priceRange;
-                    const barHeight = (order.quantity / maxQty) * chartHeight * 0.8;
-                    const y = padding + (chartHeight - barHeight) / 2;
-
-                    // Draw bar
-                    ctx.fillRect(x - 10, y, 20, barHeight);
-                    ctx.strokeRect(x - 10, y, 20, barHeight);
-
-                    // Draw price label
+                // Draw trade point - much larger for visibility
+                if (trade.buyerInitiated) {
                     ctx.fillStyle = '#28a745';
-                    ctx.font = '12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(order.price.toFixed(2), x, height - padding + 15);
-                });
+                    ctx.strokeStyle = '#28a745';
+                } else if (trade.sellerInitiated) {
+                    ctx.fillStyle = '#dc3545';
+                    ctx.strokeStyle = '#dc3545';
+                } else {
+                    ctx.fillStyle = '#6c757d';
+                    ctx.strokeStyle = '#6c757d';
+                }
+
+                ctx.save();
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                // Add a white border for contrast
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+                // Draw the colored border on top
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = trade.buyerInitiated ? '#28a745' : (trade.sellerInitiated ? '#dc3545' : '#6c757d');
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw connecting line to previous point
+                if (i > 0) {
+                    const prevTrade = tradeInitiationData.tradeHistory[historyLength - maxDisplayTrades + i - 1];
+                    const prevX = padding + (chartWidth * (i - 1)) / maxDisplayTrades;
+                    const prevY = height - padding - ((prevTrade.price - minPrice) / priceRange) * chartHeight;
+                    
+                    ctx.strokeStyle = '#6c757d';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(prevX, prevY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                }
             }
 
-            // Draw axis labels
+            // Draw legend - larger for visibility
             ctx.fillStyle = '#495057';
             ctx.font = '14px Arial';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            
+            // Buyer initiated legend
+            ctx.fillStyle = '#28a745';
+            ctx.fillRect(padding, 12, 18, 14);
+            ctx.fillStyle = '#495057';
+            ctx.fillText('Buy', padding + 24, 24);
+            
+            // Seller initiated legend
+            ctx.fillStyle = '#dc3545';
+            ctx.fillRect(padding + 70, 12, 18, 14);
+            ctx.fillStyle = '#495057';
+            ctx.fillText('Sell', padding + 96, 24);
+
+            // Draw axis labels - larger for visibility
+            ctx.fillStyle = '#495057';
+            ctx.font = 'bold 15px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('Price', width / 2, height - 10);
+            ctx.fillText('Time (200 Ticks)', width / 2, height - 8);
             
             ctx.save();
-            ctx.translate(20, height / 2);
+            ctx.translate(18, height / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText('Quantity', 0, 0);
+            ctx.fillText('Price', 0, 0);
             ctx.restore();
         }
 
