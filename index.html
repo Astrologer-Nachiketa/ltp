@@ -5594,22 +5594,39 @@
             const ema = calculateEMA(tradeInitiationData.tradeRatioHistory, 20);
             const sma = calculateSMA(tradeInitiationData.tradeRatioHistory);
             
+            // Get current trade ratio for comparison
+            const currentRatio = tradeInitiationData.sellerInitiatedCount > 0 ? 
+                (tradeInitiationData.buyerInitiatedCount / tradeInitiationData.sellerInitiatedCount) : 0;
+            
             // Update EMA/SMA display with color coding
             const emaSmaElement = document.getElementById('tradeRatioEmaSma');
             if (emaSmaElement) {
                 if (tradeInitiationData.tradeRatioHistory.length === 0) {
                     emaSmaElement.innerText = '0.00 / 0.00';
                     emaSmaElement.style.color = '#6c757d'; // Gray
+                    emaSmaElement.parentElement.style.backgroundColor = '#ffffff'; // Default white background
                 } else {
                     emaSmaElement.innerText = `${ema.toFixed(2)} / ${sma.toFixed(2)}`;
                     
-                    // Color coding: Green if EMA > SMA (bullish), Red if EMA < SMA (bearish)
-                    if (ema > sma) {
-                        emaSmaElement.style.color = '#28a745'; // Green
-                    } else if (ema < sma) {
-                        emaSmaElement.style.color = '#dc3545'; // Red
+                    // Background color logic based on rules
+                    if (ema > currentRatio && ema > sma) {
+                        // Purple: EMA > Current Ratio AND EMA > SMA
+                        emaSmaElement.parentElement.style.backgroundColor = '#8b5cf6'; // Purple
+                        emaSmaElement.style.color = '#ffffff'; // White text for contrast
+                    } else if (ema < currentRatio && ema < sma) {
+                        // Brown: EMA < Current Ratio AND EMA < SMA
+                        emaSmaElement.parentElement.style.backgroundColor = '#a0522d'; // Brown
+                        emaSmaElement.style.color = '#ffffff'; // White text for contrast
                     } else {
-                        emaSmaElement.style.color = '#6c757d'; // Gray (equal)
+                        // Default: Use text color logic
+                        emaSmaElement.parentElement.style.backgroundColor = '#ffffff'; // Default white background
+                        if (ema > sma) {
+                            emaSmaElement.style.color = '#28a745'; // Green
+                        } else if (ema < sma) {
+                            emaSmaElement.style.color = '#dc3545'; // Red
+                        } else {
+                            emaSmaElement.style.color = '#6c757d'; // Gray (equal)
+                        }
                     }
                 }
             }
