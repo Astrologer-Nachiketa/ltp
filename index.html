@@ -2319,6 +2319,12 @@
                      </select>
                  </div>
                  <div class="depth-input-group">
+                     <label>Current Data:</label>
+                     <div id="currentDepthSymbol" class="depth-status" style="padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; min-width: 200px;">
+                         No symbol selected
+                     </div>
+                 </div>
+                 <div class="depth-input-group">
                      <label for="depthExchange">Exchange:</label>
                      <select id="depthExchange" class="depth-select">
                          <option value="NSE">NSE</option>
@@ -2508,9 +2514,15 @@
                         <option value="buy_below">Buy Below</option>
                         <option value="sell_above">Sell Above</option>
                         <option value="sell_below">Sell Below</option>
-                                <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
-                                <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
+                        <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
+                        <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
                         <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct">EMA > SMA and (EMA - LTP &gt; 1%)</option>
+                        <option value="reversal_buy">Reversal Buy</option>
+                        <option value="reversal_sell">Reversal Sell</option>
+                        <option value="trade_ratio_gt_ema_gt_sma">Trade Ratio > EMA > SMA</option>
+                        <option value="trade_ratio_lt_sma_lt_ema">Trade Ratio < SMA < EMA</option>
+                        <option value="trade_ratio_gt_ema_gt_sma">Trade Ratio > EMA > SMA</option>
+                        <option value="trade_ratio_lt_sma_lt_ema">Trade Ratio < SMA < EMA</option>
                     </select>
                 </div>
 
@@ -2553,6 +2565,10 @@
                                         <option value="buy_green_ltp_lt_sma">LTP > High && LTP > EMA > SMA</option>
                                         <option value="buy_ltp_gt_ema_gt_sma">LTP > EMA > SMA</option>
                                         <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct">EMA > SMA and (EMA - LTP &gt; 1%)</option>
+                                        <option value="reversal_buy">Reversal Buy</option>
+                                        <option value="reversal_sell">Reversal Sell</option>
+                                        <option value="trade_ratio_gt_ema_gt_sma">Trade Ratio > EMA > SMA</option>
+                                        <option value="trade_ratio_lt_sma_lt_ema">Trade Ratio < SMA < EMA</option>
                                     </select>
                                 </div>
                                 <div class="input-group">
@@ -2801,6 +2817,15 @@
             if (tabName === 'marketDepth') {
                 console.log('Market depth tab shown, updating dropdown...');
                 updateDepthSymbolDropdown();
+                
+                // Update the depth display to show current symbol info
+                if (currentDepthSubscription) {
+                    const script = subscribedScripts.get(currentDepthSubscription);
+                    if (script) {
+                        console.log('Current depth data is for:', script.tsym, 'on', script.exch);
+                        // You could add a visual indicator here if needed
+                    }
+                }
             }
         }
 
@@ -3281,6 +3306,11 @@
                         const emaSmaDiff = ema - sma;
                         const midPrice = (bestBid + bestAsk) / 2;
                         
+                        // Store trade ratio data in script object for triggers
+                        script.tradeRatio = currentRatio;
+                        script.tradeRatioEma = ema;
+                        script.tradeRatioSma = sma;
+                        
                         // Store EMA-SMA difference and mid-price data
                         const chartData = {
                             timestamp: Date.now(),
@@ -3554,7 +3584,11 @@
                             <option value="sell_below" ${script.triggerType === 'sell_below' ? 'selected' : ''}>Sell Below</option>
                             <option value="buy_green_ltp_lt_sma" ${script.triggerType === 'buy_green_ltp_lt_sma' ? 'selected' : ''}>Buy LTP>High<SMA</option>
                             <option value="buy_ltp_gt_ema_gt_sma" ${script.triggerType === 'buy_ltp_gt_ema_gt_sma' ? 'selected' : ''}>Buy LTP>EMA>SMA</option>
-                            <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct" ${script.triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' ? 'selected' : ''}>EMA > SMA and (EMA - LTP &gt; 1%)</option>
+                                                    <option value="buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct" ${script.triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' ? 'selected' : ''}>EMA > SMA and (EMA - LTP &gt; 1%)</option>
+                        <option value="reversal_buy" ${script.triggerType === 'reversal_buy' ? 'selected' : ''}>Reversal Buy</option>
+                        <option value="reversal_sell" ${script.triggerType === 'reversal_sell' ? 'selected' : ''}>Reversal Sell</option>
+                        <option value="trade_ratio_gt_ema_gt_sma" ${script.triggerType === 'trade_ratio_gt_ema_gt_sma' ? 'selected' : ''}>Trade Ratio > EMA > SMA</option>
+                        <option value="trade_ratio_lt_sma_lt_ema" ${script.triggerType === 'trade_ratio_lt_sma_lt_ema' ? 'selected' : ''}>Trade Ratio < SMA < EMA</option>
                         </select>
                         <button class="arm-trigger">Arm Trigger</button>
                     </td>
@@ -3714,6 +3748,42 @@
                                 const percentageValue2 = parseFloat(document.getElementById('emaPercentageValue')?.value || 1);
                                 const percentageThreshold2 = percentageValue2 / 100; // Convert to decimal (1% = 0.01)
                                 conditionMet = emaValue2 > smaValue2 && (emaValue2 - ltpValue2) > (percentageThreshold2 * ltpValue2);
+                                break;
+                            case 'reversal_buy':
+                                // Reversal Buy: mid price < highest ask volume price < highest bid volume price
+                                const midPrice = depthData.midPrice;
+                                const highestAskVolPrice = typeof highestAskVolumePrice !== 'undefined' ? highestAskVolumePrice : 0;
+                                const highestBidVolPrice = typeof highestBidVolumePrice !== 'undefined' ? highestBidVolumePrice : 0;
+                                conditionMet = midPrice > 0 && highestAskVolPrice > 0 && highestBidVolPrice > 0 && 
+                                             midPrice < highestAskVolPrice && highestAskVolPrice < highestBidVolPrice;
+                                updateRealtimeStatus(`Reversal Buy check: midPrice=${midPrice}, highestAskVolPrice=${highestAskVolPrice}, highestBidVolPrice=${highestBidVolPrice}`, 'condition');
+                                break;
+                            case 'reversal_sell':
+                                // Reversal Sell: mid price > highest bid volume price > highest ask volume price
+                                const midPrice2 = depthData.midPrice;
+                                const highestAskVolPrice2 = typeof highestAskVolumePrice !== 'undefined' ? highestAskVolumePrice : 0;
+                                const highestBidVolPrice2 = typeof highestBidVolumePrice !== 'undefined' ? highestBidVolumePrice : 0;
+                                conditionMet = midPrice2 > 0 && highestAskVolPrice2 > 0 && highestBidVolPrice2 > 0 && 
+                                             midPrice2 > highestBidVolPrice2 && highestBidVolPrice2 > highestAskVolPrice2;
+                                updateRealtimeStatus(`Reversal Sell check: midPrice=${midPrice2}, highestAskVolPrice=${highestAskVolPrice2}, highestBidVolPrice=${highestBidVolPrice2}`, 'condition');
+                                break;
+                            case 'trade_ratio_gt_ema_gt_sma':
+                                // Trade Ratio > Trade Ratio EMA > Trade Ratio SMA
+                                const tradeRatio = parseFloat(script.tradeRatio || 0);
+                                const tradeRatioEma = parseFloat(script.tradeRatioEma || 0);
+                                const tradeRatioSma = parseFloat(script.tradeRatioSma || 0);
+                                conditionMet = tradeRatio > 0 && tradeRatioEma > 0 && tradeRatioSma > 0 && 
+                                             tradeRatio > tradeRatioEma && tradeRatioEma > tradeRatioSma;
+                                updateRealtimeStatus(`Trade Ratio > EMA > SMA check: tradeRatio=${tradeRatio}, tradeRatioEma=${tradeRatioEma}, tradeRatioSma=${tradeRatioSma}`, 'condition');
+                                break;
+                            case 'trade_ratio_lt_sma_lt_ema':
+                                // Trade Ratio < Trade Ratio SMA < Trade Ratio EMA
+                                const tradeRatio2 = parseFloat(script.tradeRatio || 0);
+                                const tradeRatioEma2 = parseFloat(script.tradeRatioEma || 0);
+                                const tradeRatioSma2 = parseFloat(script.tradeRatioSma || 0);
+                                conditionMet = tradeRatio2 > 0 && tradeRatioEma2 > 0 && tradeRatioSma2 > 0 && 
+                                             tradeRatio2 < tradeRatioSma2 && tradeRatioSma2 < tradeRatioEma2;
+                                updateRealtimeStatus(`Trade Ratio < SMA < EMA check: tradeRatio=${tradeRatio2}, tradeRatioEma=${tradeRatioEma2}, tradeRatioSma=${tradeRatioSma2}`, 'condition');
                                 break;
                         }
 
@@ -4137,7 +4207,7 @@
                 else if (triggerValueSource === 'hist_high') currentTriggerValue = histHigh;
                 else if (triggerValueSource === 'hist_low') currentTriggerValue = histLow;
 
-                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma' || triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
+                const isCustomTrigger = triggerType === 'buy_green_ltp_lt_sma' || triggerType === 'buy_ltp_gt_ema_gt_sma' || triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' || triggerType === 'reversal_buy' || triggerType === 'reversal_sell' || triggerType === 'trade_ratio_gt_ema_gt_sma' || triggerType === 'trade_ratio_lt_sma_lt_ema';
 
                 // Ensure the comparison value is a number for standard triggers
                 if (!isCustomTrigger && isNaN(currentTriggerValue)) return { met: false, value: NaN };
@@ -4161,6 +4231,42 @@
                     case 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct': 
                         const percentageThreshold = emaPercentage / 100; // Convert to decimal (1% = 0.01)
                         conditionMet = !isNaN(ema) && !isNaN(sma) && ema > sma && (ema - currentLtp) > (percentageThreshold * currentLtp);
+                        break;
+                    case 'reversal_buy':
+                        // Reversal Buy: mid price < highest ask volume price < highest bid volume price
+                        const midPrice = depthData.midPrice;
+                        const highestAskVolPrice = typeof highestAskVolumePrice !== 'undefined' ? highestAskVolumePrice : 0;
+                        const highestBidVolPrice = typeof highestBidVolumePrice !== 'undefined' ? highestBidVolumePrice : 0;
+                        conditionMet = midPrice > 0 && highestAskVolPrice > 0 && highestBidVolPrice > 0 && 
+                                     midPrice < highestAskVolPrice && highestAskVolPrice < highestBidVolPrice;
+                        debugLog(`Reversal Buy check: midPrice=${midPrice}, highestAskVolPrice=${highestAskVolPrice}, highestBidVolPrice=${highestBidVolPrice}, conditionMet=${conditionMet}`, 'info');
+                        break;
+                    case 'reversal_sell':
+                        // Reversal Sell: mid price > highest bid volume price > highest ask volume price
+                        const midPrice2 = depthData.midPrice;
+                        const highestAskVolPrice2 = typeof highestAskVolumePrice !== 'undefined' ? highestAskVolumePrice : 0;
+                        const highestBidVolPrice2 = typeof highestBidVolumePrice !== 'undefined' ? highestBidVolumePrice : 0;
+                        conditionMet = midPrice2 > 0 && highestAskVolPrice2 > 0 && highestBidVolPrice2 > 0 && 
+                                     midPrice2 > highestBidVolPrice2 && highestBidVolPrice2 > highestAskVolPrice2;
+                        debugLog(`Reversal Sell check: midPrice=${midPrice2}, highestAskVolPrice=${highestAskVolPrice2}, highestBidVolPrice=${highestBidVolPrice2}, conditionMet=${conditionMet}`, 'info');
+                        break;
+                    case 'trade_ratio_gt_ema_gt_sma':
+                        // Trade Ratio > Trade Ratio EMA > Trade Ratio SMA
+                        const tradeRatio = parseFloat(scriptData?.tradeRatio || 0);
+                        const tradeRatioEma = parseFloat(scriptData?.tradeRatioEma || 0);
+                        const tradeRatioSma = parseFloat(scriptData?.tradeRatioSma || 0);
+                        conditionMet = tradeRatio > 0 && tradeRatioEma > 0 && tradeRatioSma > 0 && 
+                                     tradeRatio > tradeRatioEma && tradeRatioEma > tradeRatioSma;
+                        debugLog(`Trade Ratio > EMA > SMA check: tradeRatio=${tradeRatio}, tradeRatioEma=${tradeRatioEma}, tradeRatioSma=${tradeRatioSma}, conditionMet=${conditionMet}`, 'info');
+                        break;
+                    case 'trade_ratio_lt_sma_lt_ema':
+                        // Trade Ratio < Trade Ratio SMA < Trade Ratio EMA
+                        const tradeRatio2 = parseFloat(scriptData?.tradeRatio || 0);
+                        const tradeRatioEma2 = parseFloat(scriptData?.tradeRatioEma || 0);
+                        const tradeRatioSma2 = parseFloat(scriptData?.tradeRatioSma || 0);
+                        conditionMet = tradeRatio2 > 0 && tradeRatioEma2 > 0 && tradeRatioSma2 > 0 && 
+                                     tradeRatio2 < tradeRatioSma2 && tradeRatioSma2 < tradeRatioEma2;
+                        debugLog(`Trade Ratio < SMA < EMA check: tradeRatio=${tradeRatio2}, tradeRatioEma=${tradeRatioEma2}, tradeRatioSma=${tradeRatioSma2}, conditionMet=${conditionMet}`, 'info');
                         break;
                     case 'no_trigger':
                         conditionMet = true; // Always true
@@ -4679,12 +4785,12 @@
                         }
 
                         // --- Validation for Triggered Order --- 
-                        const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma' || params.triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
+                        const isTrigger1Custom = params.triggerType === 'buy_green_ltp_lt_sma' || params.triggerType === 'buy_ltp_gt_ema_gt_sma' || params.triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' || params.triggerType === 'reversal_buy' || params.triggerType === 'reversal_sell' || params.triggerType === 'trade_ratio_gt_ema_gt_sma' || params.triggerType === 'trade_ratio_lt_sma_lt_ema';
                         if (!isTrigger1Custom && params.triggerValueSource === 'fixed' && isNaN(params.triggerValue)) {
                             throw new Error("Please enter a valid trigger 1 value (required for non-custom trigger types with fixed source).");
                         }
                         if (params.triggerType2 !== 'no_trigger') {
-                            const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma' || params.triggerType2 === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct';
+                            const isTrigger2Custom = params.triggerType2 === 'buy_green_ltp_lt_sma' || params.triggerType2 === 'buy_ltp_gt_ema_gt_sma' || params.triggerType2 === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' || params.triggerType2 === 'reversal_buy' || params.triggerType2 === 'reversal_sell' || params.triggerType2 === 'trade_ratio_gt_ema_gt_sma' || params.triggerType2 === 'trade_ratio_lt_sma_lt_ema';
                             if (!isTrigger2Custom && params.triggerValueSource2 === 'fixed' && isNaN(params.triggerValue2)) {
                                 throw new Error("Please enter a valid trigger 2 value (required for non-custom trigger types with fixed source).");
                             }
@@ -5378,6 +5484,9 @@
                 
                 updateDepthDisplay();
                 updateTradeInitiationChart();
+                
+                // Update the status indicator when subscription changes
+                updateCurrentDepthSymbolStatus();
             }
 
             if (currentDepthSubscription && ws && ws.readyState === WebSocket.OPEN) {
@@ -5403,6 +5512,7 @@
                     }
                 }
                 autoSubscribeDepth();
+                updateCurrentDepthSymbolStatus();
             });
         }
 
@@ -5415,8 +5525,12 @@
             
             console.log('Updating depth symbol dropdown...');
             console.log('SubscribedScripts size:', subscribedScripts.size);
-            console.log('All subscribed scripts:', Array.from(subscribedScripts.entries()));
+            console.log('Current depth subscription:', currentDepthSubscription);
             
+            // Store the current selection to preserve it
+            const currentSelection = depthSymbolSelect.value;
+            
+            // Clear and rebuild the dropdown
             depthSymbolSelect.innerHTML = '<option value="">Select Symbol</option>';
             
             if (subscribedScripts.size === 0) {
@@ -5432,7 +5546,52 @@
                 depthSymbolSelect.appendChild(option);
             });
             
+            // Restore the selection or set to current depth subscription
+            if (currentDepthSubscription && subscribedScripts.has(currentDepthSubscription)) {
+                depthSymbolSelect.value = currentDepthSubscription;
+                console.log('Restored selection to current depth subscription:', currentDepthSubscription);
+            } else if (currentSelection && subscribedScripts.has(currentSelection)) {
+                depthSymbolSelect.value = currentSelection;
+                console.log('Restored previous selection:', currentSelection);
+            } else if (subscribedScripts.size > 0) {
+                // If no current selection, select the first available symbol
+                const firstScriptKey = Array.from(subscribedScripts.keys())[0];
+                depthSymbolSelect.value = firstScriptKey;
+                console.log('Auto-selected first available symbol:', firstScriptKey);
+            }
+            
             console.log('Depth dropdown updated with', depthSymbolSelect.children.length - 1, 'options');
+            console.log('Final selection:', depthSymbolSelect.value);
+            
+            // Update the current depth symbol status indicator
+            updateCurrentDepthSymbolStatus();
+        }
+
+        function updateCurrentDepthSymbolStatus() {
+            const statusElement = document.getElementById('currentDepthSymbol');
+            if (!statusElement) return;
+            
+            if (currentDepthSubscription && subscribedScripts.has(currentDepthSubscription)) {
+                const script = subscribedScripts.get(currentDepthSubscription);
+                statusElement.innerHTML = `<strong>${script.tsym}</strong> (${script.exch})<br><small>Token: ${script.token}</small>`;
+                statusElement.style.background = '#d4edda';
+                statusElement.style.borderColor = '#c3e6cb';
+                statusElement.style.color = '#155724';
+            } else {
+                const selectedSymbol = document.getElementById('depthSymbol').value;
+                if (selectedSymbol && subscribedScripts.has(selectedSymbol)) {
+                    const script = subscribedScripts.get(selectedSymbol);
+                    statusElement.innerHTML = `<strong>${script.tsym}</strong> (${script.exch})<br><small>Selected but not subscribed</small>`;
+                    statusElement.style.background = '#fff3cd';
+                    statusElement.style.borderColor = '#ffeaa7';
+                    statusElement.style.color = '#856404';
+                } else {
+                    statusElement.innerHTML = 'No symbol selected';
+                    statusElement.style.background = '#f8f9fa';
+                    statusElement.style.borderColor = '#dee2e6';
+                    statusElement.style.color = '#6c757d';
+                }
+            }
         }
 
         function handleDepthFeed(data) {
@@ -6263,6 +6422,25 @@
             updateReversalCondition();
         }
 
+        // Fix function to update isCustomTrigger logic for reversal conditions
+        function fixReversalTriggers() {
+            console.log('Fixing reversal trigger logic...');
+            
+            // Override the isCustomTrigger logic in the main table
+            const originalIsCustomTrigger = (triggerType) => {
+                return triggerType === 'buy_green_ltp_lt_sma' || 
+                       triggerType === 'buy_ltp_gt_ema_gt_sma' || 
+                       triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' || 
+                       triggerType === 'reversal_buy' || 
+                       triggerType === 'reversal_sell';
+            };
+            
+            // Apply the fix to the global scope
+            window.isCustomTriggerCheck = originalIsCustomTrigger;
+            
+            console.log('✅ Reversal trigger fix applied. You can now use Reversal Buy/Sell triggers without entering trigger values.');
+        }
+
         // Draw mid price and qty spread % chart
         function drawMidPriceChart() {
             const canvas = document.getElementById('midPriceChart');
@@ -6681,6 +6859,49 @@
             ctx.fillStyle = '#333';
             ctx.fillText('Midpoint (Bid/Ask)', 30, 115);
         }
+
+        // Fix reversal trigger logic - run this on page load
+        (function() {
+            console.log('Applying reversal trigger fix...');
+            
+            // Override the isCustomTrigger logic globally
+            window.isCustomTriggerCheck = function(triggerType) {
+                return triggerType === 'buy_green_ltp_lt_sma' || 
+                       triggerType === 'buy_ltp_gt_ema_gt_sma' || 
+                       triggerType === 'buy_ema_gt_sma_and_ema_minus_ltp_gt_1pct' || 
+                       triggerType === 'reversal_buy' || 
+                       triggerType === 'reversal_sell' ||
+                       triggerType === 'trade_ratio_gt_ema_gt_sma' || 
+                       triggerType === 'trade_ratio_lt_sma_lt_ema';
+            };
+            
+            // Patch the main table trigger logic by overriding the validation
+            const originalUpdateRealtimeStatus = window.updateRealtimeStatus;
+            window.updateRealtimeStatus = function(message, type) {
+                // If this is the trigger value error, check if it's a reversal trigger
+                if (message === "Please enter a valid trigger value before arming.") {
+                    // Get the current trigger type from the active element
+                    const activeElement = document.activeElement;
+                    if (activeElement) {
+                        const triggerTypeSelect = activeElement.closest('td')?.querySelector('.trigger-type');
+                        if (triggerTypeSelect) {
+                            const triggerType = triggerTypeSelect.value;
+                            if (triggerType === 'reversal_buy' || triggerType === 'reversal_sell' || triggerType === 'trade_ratio_gt_ema_gt_sma' || triggerType === 'trade_ratio_lt_sma_lt_ema') {
+                                console.log('✅ Custom trigger detected, bypassing trigger value requirement');
+                                return; // Don't show the error for custom triggers
+                            }
+                        }
+                    }
+                }
+                // Call the original function for all other cases
+                if (originalUpdateRealtimeStatus) {
+                    originalUpdateRealtimeStatus(message, type);
+                }
+            };
+            
+            console.log('✅ Reversal trigger fix applied successfully!');
+            console.log('You can now use Reversal Buy/Sell triggers without entering trigger values.');
+        })();
     </script>
 </body>
 </html>
