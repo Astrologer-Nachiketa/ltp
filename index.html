@@ -1880,6 +1880,20 @@
         .qty-spread-summary .summary-value {
             color: #6f42c1;
         }
+        
+        .reversal-condition {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .reversal-condition.buy-reversal .summary-value {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .reversal-condition.sell-reversal .summary-value {
+            color: #dc3545;
+            font-weight: bold;
+        }
 
         .mid-summary {
             border-left: 4px solid #17a2b8;
@@ -1995,6 +2009,32 @@
             text-align: center;
         }
 
+        /* Market Depth Chart Styles */
+        .market-depth-chart-container {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+            margin-top: 15px;
+        }
+
+        .market-depth-chart-container h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #marketDepthChart {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+
 
 
 
@@ -2074,6 +2114,16 @@
             .depth-table td {
                 padding: 8px 4px;
             }
+            
+            /* Stack charts vertically on mobile */
+            .charts-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .chart-half canvas {
+                height: 250px;
+            }
         }
 
         .sentiment-summary {
@@ -2091,6 +2141,38 @@
         .trade-ratio-summary {
             border-left: 4px solid #ffc107;
         }
+        /* Side by Side Charts Container */
+        .charts-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .chart-half {
+            flex: 1;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+            padding: 15px;
+        }
+        
+        .chart-half h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .chart-half canvas {
+            width: 100%;
+            height: 350px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+        }
+        
+        /* Legacy chart container styles for backward compatibility */
         .midprice-chart-container {
             width: 100%;
             max-width: none;
@@ -2298,9 +2380,21 @@
                     <h4>Trade Ratio EMA/SMA</h4>
                     <div class="summary-value" id="tradeRatioEmaSma">0.00 / 0.00</div>
                 </div>
+                <div class="summary-card reversal-condition" title="Reversal conditions based on price relationships. Green for buy reversal, Red for sell reversal.">
+                    <h4>Reversal Condition</h4>
+                    <div class="summary-value" id="reversalCondition">-</div>
+                </div>
             </div>
-            <div class="midprice-chart-container" title="EMA-SMA Difference vs Mid Price chart showing the last 200 ticks. Helps identify momentum and price correlation.">
-                <canvas id="emaSmaDiffChart" width="1200" height="350"></canvas>
+            <!-- Charts Container - Side by Side -->
+            <div class="charts-container">
+                <div class="chart-half" title="EMA-SMA Difference vs Mid Price chart showing the last 200 ticks. Helps identify momentum and price correlation.">
+                    <h4>EMA-SMA Difference vs Mid Price</h4>
+                    <canvas id="emaSmaDiffChart" width="600" height="350"></canvas>
+                </div>
+                <div class="chart-half" title="Market Depth Chart showing the last 200 data points with bid/ask volumes and key price levels.">
+                    <h4>Market Depth Chart (Last 200 Data Points)</h4>
+                    <canvas id="marketDepthChart" width="600" height="350"></canvas>
+                </div>
             </div>
 
             <!-- Market Depth Table -->
@@ -2333,6 +2427,8 @@
                 <h4>Buyer vs Seller Initiated Trades (Last 200 Ticks)</h4>
                 <canvas id="tradeInitiationChart" width="800" height="400"></canvas>
             </div>
+
+
         </div>
 
         <!-- Algo Trading Tab -->
@@ -5220,6 +5316,15 @@
         let priceSpreadPercentageHistory = [];
         const MID_PRICE_HISTORY_LIMIT = 100;
 
+        // Market Depth Chart Data Storage
+        const MARKET_DEPTH_HISTORY_LIMIT = 200;
+        let marketDepthHistory = [];
+        let bidVolumeHistory = [];
+        let askVolumeHistory = [];
+        let priceLevelsHistory = [];
+        let highestBidVolumePrice = 0;
+        let highestAskVolumePrice = 0;
+
         function autoSubscribeDepth() {
             const scriptKey = document.getElementById('depthSymbol').value;
             const exchange = document.getElementById('depthExchange').value;
@@ -5262,6 +5367,14 @@
                     previousLtp: null,
                     currentSymbol: scriptKey
                 };
+                
+                // Reset market depth chart data for new symbol
+                marketDepthHistory = [];
+                bidVolumeHistory = [];
+                askVolumeHistory = [];
+                priceLevelsHistory = [];
+                highestBidVolumePrice = 0;
+                highestAskVolumePrice = 0;
                 
                 updateDepthDisplay();
                 updateTradeInitiationChart();
@@ -5474,9 +5587,11 @@
             document.getElementById('qtySpreadPercentage').innerText = depthData.qtySpreadPercentage.toFixed(2) + '%';
             document.getElementById('midPrice').innerText = depthData.midPrice.toFixed(2);
             updateSentimentIndicator();
+            updateReversalCondition();
             drawMidPriceChart();
             updateDepthTable();
             updateTradeInitiationChart();
+            updateMarketDepthChart();
             
             // Log the market depth data with the specific field names you requested
             console.log('Market Depth Update - tbq:', depthData.tbq, 'tsq:', depthData.tsq);
@@ -5496,6 +5611,73 @@
                 }
             }
             document.getElementById('sentimentValue').innerText = sentiment;
+        }
+
+        function updateReversalCondition() {
+            const reversalElement = document.getElementById('reversalCondition');
+            const reversalCard = document.querySelector('.reversal-condition');
+            
+            if (!reversalElement || !reversalCard) return;
+            
+            // Get current values
+            const midPrice = depthData.midPrice;
+            
+            // Access the variables directly from the global scope
+            // These are calculated in updateMarketDepthChart function
+            const currentHighestAskVolumePrice = typeof highestAskVolumePrice !== 'undefined' ? highestAskVolumePrice : 0;
+            const currentHighestBidVolumePrice = typeof highestBidVolumePrice !== 'undefined' ? highestBidVolumePrice : 0;
+            
+            // Debug logging to see what values we're getting
+            console.log('Reversal Debug - Raw Values:', {
+                midPrice,
+                highestAskVolumePrice: typeof highestAskVolumePrice !== 'undefined' ? highestAskVolumePrice : 'undefined',
+                highestBidVolumePrice: typeof highestBidVolumePrice !== 'undefined' ? highestBidVolumePrice : 'undefined',
+                currentHighestAskVolumePrice,
+                currentHighestBidVolumePrice
+            });
+            
+            // Check if we have enough data
+            if (midPrice <= 0 || currentHighestAskVolumePrice <= 0 || currentHighestBidVolumePrice <= 0) {
+                reversalElement.innerText = 'Insufficient Data';
+                reversalCard.className = 'summary-card reversal-condition';
+                console.log('Reversal: Insufficient data - midPrice:', midPrice, 'askVol:', currentHighestAskVolumePrice, 'bidVol:', currentHighestBidVolumePrice);
+                return;
+            }
+            
+            // Check reversal conditions
+            let reversalText = '-';
+            let reversalClass = '';
+            
+            // Reversal Buy: mid price < highest ask volume price < highest bid volume price
+            if (midPrice < currentHighestAskVolumePrice && currentHighestAskVolumePrice < currentHighestBidVolumePrice) {
+                reversalText = 'Reversal Buy';
+                reversalClass = 'summary-card reversal-condition buy-reversal';
+                console.log('Reversal: BUY condition met');
+            }
+            // Reversal Sell: mid price > highest bid volume price > highest ask volume price
+            else if (midPrice > currentHighestBidVolumePrice && currentHighestBidVolumePrice > currentHighestAskVolumePrice) {
+                reversalText = 'Reversal Sell';
+                reversalClass = 'summary-card reversal-condition sell-reversal';
+                console.log('Reversal: SELL condition met');
+            }
+            else {
+                reversalText = 'No Reversal';
+                reversalClass = 'summary-card reversal-condition';
+                console.log('Reversal: No condition met');
+            }
+            
+            // Update display
+            reversalElement.innerText = reversalText;
+            reversalCard.className = reversalClass;
+            
+            // Debug logging
+            console.log('Reversal Condition Update:', {
+                midPrice,
+                currentHighestAskVolumePrice,
+                currentHighestBidVolumePrice,
+                reversalText,
+                condition: reversalText
+            });
         }
 
         function drawMidPriceChart() {
@@ -6040,6 +6222,46 @@
         }
 
         // Initialize market depth functionality
+        // Initial chart draw to show the canvas
+        setTimeout(() => {
+            if (document.getElementById('marketDepthChart')) {
+                drawMarketDepthChart();
+            }
+        }, 1000);
+        
+        // Test function for reversal condition - call this from console to test
+        function testReversalCondition() {
+            console.log('=== Testing Reversal Condition ===');
+            console.log('Current values:');
+            console.log('- midPrice:', depthData.midPrice);
+            console.log('- highestBidVolumePrice:', highestBidVolumePrice);
+            console.log('- highestAskVolumePrice:', highestAskVolumePrice);
+            
+            if (depthData.midPrice > 0 && highestBidVolumePrice > 0 && highestAskVolumePrice > 0) {
+                console.log('All values are available, checking conditions...');
+                
+                // Test Reversal Buy condition
+                const buyCondition = depthData.midPrice < highestAskVolumePrice && highestAskVolumePrice < highestBidVolumePrice;
+                console.log('Reversal Buy condition:', buyCondition);
+                
+                // Test Reversal Sell condition
+                const sellCondition = depthData.midPrice > highestBidVolumePrice && highestBidVolumePrice > highestAskVolumePrice;
+                console.log('Reversal Sell condition:', sellCondition);
+                
+                if (buyCondition) {
+                    console.log('✅ Reversal Buy condition is met!');
+                } else if (sellCondition) {
+                    console.log('✅ Reversal Sell condition is met!');
+                } else {
+                    console.log('❌ No reversal condition is met');
+                }
+            } else {
+                console.log('❌ Missing required values for reversal check');
+            }
+            
+            // Manually call the update function
+            updateReversalCondition();
+        }
 
         // Draw mid price and qty spread % chart
         function drawMidPriceChart() {
@@ -6151,6 +6373,313 @@
             ctx.fillText('Qty Spread %', width - 120, 12);
             ctx.fillStyle = '#28a745';
             ctx.fillText('Price Spread %', width - 60, 12);
+        }
+
+        // Update Market Depth Chart Data
+        function updateMarketDepthChart() {
+            // Calculate current bid and ask volumes
+            const currentBidVolume = depthData.bq1 + depthData.bq2 + depthData.bq3 + depthData.bq4 + depthData.bq5;
+            const currentAskVolume = depthData.sq1 + depthData.sq2 + depthData.sq3 + depthData.sq4 + depthData.sq5;
+            const currentMidPrice = depthData.midPrice;
+            
+            // Add current data to history
+            marketDepthHistory.push({
+                timestamp: Date.now(),
+                bidVolume: currentBidVolume,
+                askVolume: currentAskVolume,
+                midPrice: currentMidPrice,
+                highestBidPrice: depthData.bp1,
+                lowestAskPrice: depthData.sp1
+            });
+            
+            // Keep only last 200 data points
+            if (marketDepthHistory.length > MARKET_DEPTH_HISTORY_LIMIT) {
+                marketDepthHistory.shift();
+            }
+            
+            // Always update volume history arrays (don't wait for 200 points)
+            bidVolumeHistory = marketDepthHistory.map(d => d.bidVolume);
+            askVolumeHistory = marketDepthHistory.map(d => d.askVolume);
+            priceLevelsHistory = marketDepthHistory.map(d => d.midPrice);
+            
+            // Find highest bid volume price level
+            if (bidVolumeHistory.length > 0) {
+                const maxBidVolume = Math.max(...bidVolumeHistory);
+                const maxBidIndex = bidVolumeHistory.indexOf(maxBidVolume);
+                highestBidVolumePrice = priceLevelsHistory[maxBidIndex];
+                console.log('Updated highestBidVolumePrice:', highestBidVolumePrice);
+            }
+            
+            // Find highest ask volume price level
+            if (askVolumeHistory.length > 0) {
+                const maxAskVolume = Math.max(...askVolumeHistory);
+                const maxAskIndex = askVolumeHistory.indexOf(maxAskVolume);
+                highestAskVolumePrice = priceLevelsHistory[maxAskIndex];
+                console.log('Updated highestAskVolumePrice:', highestAskVolumePrice);
+            }
+            
+            // Debug logging
+            console.log('Market Depth Chart Update:', {
+                historyLength: marketDepthHistory.length,
+                bidVolumes: bidVolumeHistory.length,
+                askVolumes: askVolumeHistory.length,
+                currentBidVolume,
+                currentAskVolume,
+                currentMidPrice,
+                highestBidVolumePrice,
+                highestAskVolumePrice
+            });
+            
+            // Draw the chart
+            drawMarketDepthChart();
+        }
+
+        // Draw Market Depth Chart
+        function drawMarketDepthChart() {
+            const canvas = document.getElementById('marketDepthChart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            if (marketDepthHistory.length < 2) {
+                ctx.fillStyle = '#6c757d';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Collecting market depth data...', width / 2, height / 2);
+                
+                // Draw a simple test bar to verify canvas is working
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.5)';
+                ctx.fillRect(width / 2 - 50, height / 2 - 2, 100, 4);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Test Bar (Canvas Working)', width / 2, height / 2 + 20);
+                return;
+            }
+            
+            // Calculate price range - focus on current price with 20% padding
+            const allPrices = priceLevelsHistory.length > 0 ? priceLevelsHistory : marketDepthHistory.map(d => d.midPrice);
+            const currentPrice = allPrices[allPrices.length - 1] || depthData.midPrice || 100;
+            
+            // Calculate range around current price with 20% padding
+            const pricePadding = currentPrice * 0.2; // 20% padding
+            const minPrice = Math.max(currentPrice - pricePadding, 0);
+            const maxPrice = currentPrice + pricePadding;
+            const priceRange = maxPrice - minPrice;
+            
+            // Calculate volume range
+            const maxVolume = Math.max(...bidVolumeHistory, ...askVolumeHistory);
+            const volumeRange = Math.max(maxVolume, 1); // Ensure minimum volume range
+            
+            // Debug logging for chart drawing
+            console.log('Chart Drawing Debug:', {
+                historyLength: marketDepthHistory.length,
+                allPrices: allPrices.length,
+                currentPrice,
+                minPrice,
+                maxPrice,
+                priceRange,
+                pricePadding,
+                bidVolumes: bidVolumeHistory.length,
+                askVolumes: askVolumeHistory.length,
+                maxVolume,
+                volumeRange
+            });
+            
+            // Draw vertical price axis in center
+            const centerX = width / 2;
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // Draw price labels on center axis
+            ctx.fillStyle = '#333';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 5; i++) {
+                const price = minPrice + (priceRange * i / 5);
+                const y = height - ((price - minPrice) / priceRange) * height;
+                ctx.fillText(price.toFixed(2), centerX, y + 3);
+            }
+            
+            // Add current price indicator
+            ctx.fillStyle = '#ff6b35';
+            ctx.font = '12px Arial';
+            ctx.fontWeight = 'bold';
+            ctx.fillText(`Current: ${currentPrice.toFixed(2)}`, centerX, 15);
+            
+            // Add price range indicator
+            ctx.fillStyle = '#666';
+            ctx.font = '10px Arial';
+            ctx.fillText(`Range: ${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)}`, centerX, 30);
+            
+            // Draw horizontal bars for bids (left side, green)
+            if (bidVolumeHistory.length > 0) {
+                console.log('Drawing bid bars:', bidVolumeHistory.length, 'volumes, max volume:', Math.max(...bidVolumeHistory));
+                
+                // Lighter green for cumulative volume
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.3)';
+                for (let i = 0; i < bidVolumeHistory.length; i++) {
+                    const volume = bidVolumeHistory[i];
+                    const price = allPrices[i];
+                    const y = height - ((price - minPrice) / priceRange) * height;
+                    const barWidth = Math.max((volume / volumeRange) * (centerX - 20), 2); // Minimum bar width
+                    
+                    ctx.fillRect(centerX - barWidth, y - 2, barWidth, 4);
+                }
+                
+                // Darker green for current volume
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.8)';
+                if (bidVolumeHistory.length > 0) {
+                    const currentVolume = bidVolumeHistory[bidVolumeHistory.length - 1];
+                    const currentPrice = allPrices[allPrices.length - 1];
+                    const y = height - ((currentPrice - minPrice) / priceRange) * height;
+                    const barWidth = Math.max((currentVolume / volumeRange) * (centerX - 20), 2); // Minimum bar width
+                    
+                    ctx.fillRect(centerX - barWidth, y - 2, barWidth, 4);
+                }
+            }
+            
+            // Draw horizontal bars for asks (right side, red)
+            if (askVolumeHistory.length > 0) {
+                // Lighter red for cumulative volume
+                ctx.fillStyle = 'rgba(220, 53, 69, 0.3)';
+                for (let i = 0; i < askVolumeHistory.length; i++) {
+                    const volume = askVolumeHistory[i];
+                    const price = allPrices[i];
+                    const y = height - ((price - minPrice) / priceRange) * height;
+                    const barWidth = Math.max((volume / volumeRange) * (centerX - 20), 2); // Minimum bar width
+                    
+                    ctx.fillRect(centerX + 2, y - 2, barWidth, 4);
+                }
+                
+                // Darker red for current volume
+                ctx.fillStyle = 'rgba(220, 53, 69, 0.8)';
+                if (askVolumeHistory.length > 0) {
+                    const currentVolume = askVolumeHistory[askVolumeHistory.length - 1];
+                    const currentPrice = allPrices[allPrices.length - 1];
+                    const y = height - ((currentPrice - minPrice) / priceRange) * height;
+                    const barWidth = Math.max((currentVolume / volumeRange) * (centerX - 20), 2); // Minimum bar width
+                    
+                    ctx.fillRect(centerX + 2, y - 2, barWidth, 4);
+                }
+            }
+            
+            // Draw horizontal pink line at highest bid volume price
+            if (highestBidVolumePrice > 0) {
+                ctx.strokeStyle = '#e91e63';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                const y = height - ((highestBidVolumePrice - minPrice) / priceRange) * height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Add label
+                ctx.fillStyle = '#e91e63';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Highest Bid Vol: ${highestBidVolumePrice.toFixed(2)}`, 5, y - 5);
+            }
+            
+            // Draw horizontal blue line at highest ask volume price
+            if (highestAskVolumePrice > 0) {
+                ctx.strokeStyle = '#2196f3';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                const y = height - ((highestAskVolumePrice - minPrice) / priceRange) * height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Add label
+                ctx.fillStyle = '#2196f3';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(`Highest Ask Vol: ${highestAskVolumePrice.toFixed(2)}`, width - 5, y - 5);
+            }
+            
+            // Draw horizontal yellow line at midpoint between highest bid and lowest ask
+            if (depthData.bp1 > 0 && depthData.sp1 > 0) {
+                const midPoint = (depthData.bp1 + depthData.sp1) / 2;
+                ctx.strokeStyle = '#ffc107';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([3, 3]);
+                const y = height - ((midPoint - minPrice) / priceRange) * height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Add label
+                ctx.fillStyle = '#ffc107';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Midpoint: ${midPoint.toFixed(2)}`, centerX, y - 5);
+            }
+            
+            // Draw legend
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            
+            // Bid legend
+            ctx.fillStyle = 'rgba(40, 167, 69, 0.8)';
+            ctx.fillRect(10, 10, 15, 10);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Current Bid Volume', 30, 20);
+            
+            ctx.fillStyle = 'rgba(40, 167, 69, 0.3)';
+            ctx.fillRect(10, 25, 15, 10);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Cumulative Bid Volume', 30, 35);
+            
+            // Ask legend
+            ctx.fillStyle = 'rgba(220, 53, 69, 0.8)';
+            ctx.fillRect(10, 45, 15, 10);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Current Ask Volume', 30, 55);
+            
+            ctx.fillStyle = 'rgba(220, 53, 69, 0.3)';
+            ctx.fillRect(10, 60, 15, 10);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Cumulative Ask Volume', 30, 70);
+            
+            // Lines legend
+            ctx.strokeStyle = '#e91e63';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, 80);
+            ctx.lineTo(25, 80);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Highest Bid Volume Price', 30, 85);
+            
+            ctx.strokeStyle = '#2196f3';
+            ctx.beginPath();
+            ctx.moveTo(10, 95);
+            ctx.lineTo(25, 95);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Highest Ask Volume Price', 30, 100);
+            
+            ctx.fillStyle = '#ffc107';
+            ctx.beginPath();
+            ctx.moveTo(10, 110);
+            ctx.lineTo(25, 110);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Midpoint (Bid/Ask)', 30, 115);
         }
     </script>
 </body>
