@@ -1393,169 +1393,6 @@
              margin-right: 0; /* No margin for the last element */
          }
 
-        /* TradingView Monitor Styles */
-        .input-toggle {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            padding: 4px 8px; /* Reduced padding */
-            font-size: 12px; /* Smaller font */
-        }
-        .input-container {
-            display: none;
-            position: fixed;
-            top: 35px; /* Adjusted top position slightly */
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 10px; /* Reduced padding */
-            border-radius: 6px; /* Slightly smaller radius */
-            box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Reduced shadow */
-            z-index: 99;
-        }
-        .input-container.active {
-            display: block;
-        }
-        .input-container .input-group { /* More specific selector */
-            margin-bottom: 6px; /* Reduced margin */
-        }
-        .input-container input { /* More specific selector */
-            padding: 5px; /* Reduced padding */
-            width: 180px; /* Slightly reduced width */
-            border: 1px solid #ddd;
-            border-radius: 3px; /* Smaller radius */
-            font-size: 12px; /* Smaller font */
-        }
-        /* Avoid general button override if possible */
-        .input-container button {
-            padding: 6px 12px; /* Reduced padding */
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 3px; /* Smaller radius */
-            cursor: pointer;
-            font-size: 12px; /* Smaller font */
-        }
-        .input-container button:hover {
-            background: #0056b3;
-        }
-        #results { /* Add margin-top to push table below fixed inputs */
-            /* margin-top: 65px; */ /* Adjust as needed based on input container height */
-            /* --- Make results fixed and scrollable --- */
-            position: fixed;
-            /* top: 115px; */      /* Position below input container (adjust as needed) */
-            top: 1px;        /* Position below input container */
-            /* left: 10px; */      /* Add some padding from the left edge */
-            /* right: 10px; */     /* Add some padding from the right edge */
-            right: 0;         /* Align to right edge */
-            /* bottom: 0; */    /* Position AT the bottom edge */
-            /* --- Auto width based on content --- */
-            width: max-content; /* Adjust width to content */
-            /* max-width: 95%; */     /* Prevent it from getting too wide */
-            max-width: 40%;      /* Limit width */
-            /* left: 50%; */          /* Center horizontally */
-            /* transform: translateX(-50%); */ /* Center horizontally */
-            /* --- End Auto width --- */
-            /* --- Auto height based on content --- */
-            height: max-content; /* Adjust height to content */
-            /* max-height: calc(100vh - 80px); */ /* Limit height (leave ~80px for top fixed elements) */
-            max-height: calc(100vh - 100px); /* Leave space top and bottom */
-            /* --- End Auto height --- */
-            overflow-y: auto; /* Allow vertical scrolling within the results div */
-            /* background: #fff; */ /* Remove background for transparency */
-            /* padding: 10px; */   /* Remove internal padding */
-            /* border: 1px solid #ddd; */ /* Remove border */
-            /* border-radius: 6px; */ /* Keep some rounding? */
-            /* box-shadow: 0 1px 5px rgba(0,0,0,0.1); */
-            z-index: 98;     /* Below inputs but above body */
-        }
-        #results table { /* More specific selector */
-            width: 100%;
-            border-collapse: collapse;
-            /* margin-top: 10px; */ /* No longer needed with padding in #results */
-            font-size: 8px; /* Smaller font for table */
-        }
-        #results th, #results td { /* More specific selector */
-            border: 1px solid #ddd;
-            padding: 5px; /* Reduced padding */
-            text-align: left;
-            position: sticky;
-            top: -1px; /* Stick to the very top of the scrollable #results */
-            z-index: 1; /* Ensure header stays above table content */
-            /* Adjust based on other fixed elements if necessary */
-            font-weight: 600; /* Ensure header is bold */
-        }
-        #results th { /* More specific selector */
-            background-color: #f8f9fa;
-        }
-        #results .highlight { /* More specific selector */
-            background-color: #fff3cd;
-        }
-
-        /* Container for side-by-side conditions (3 columns) */
-        .multi-conditions-container {
-            display: flex;
-            gap: 15px; /* Adjust gap between the three condition blocks */
-            margin-top: 15px; /* Add some space above this section */
-            align-items: flex-start; /* Align items to the top */
-            border-top: 1px solid #eee; /* Add separator line above */
-            padding-top: 10px; /* Space below the separator line */
-        }
-
-        /* Styling for individual condition groups (Trigger2, TV & Signal) */
-        .condition-group {
-            flex: 1; /* Make each group take up equal space */
-            /* Optional: Add border for visual separation during testing */
-            /* border: 1px dashed #ccc; */
-            /* padding: 5px; */
-        }
-
-        /* Adjust heading margin/style within the groups */
-        .condition-group h4 {
-            margin-top: 0 !important; /* Override existing margin */
-            padding-top: 0 !important; /* Override existing padding */
-            border-top: none !important; /* Remove the top border from original style */
-            margin-bottom: 10px !important; /* Space below heading */
-            font-size: 1em !important; /* Keep heading size consistent */
-        }
-
-        /* Optional: Adjust checkbox alignment if needed */
-        .condition-group input[type="checkbox"] {
-             margin-top: 5px; /* Align checkbox slightly better */
-        }
-
-        /* Ensure labels and inputs within the groups align well */
-        .condition-group .input-group .algo-label {
-            /* Adjust width if needed, maybe make it slightly smaller */
-             width: 80px;
-        }
-        .condition-group .input-group .algo-select,
-        .condition-group .input-group .algo-input {
-             /* Ensure they grow to fill remaining space */
-             flex-grow: 1;
-        }
-
-        /* Trigger cell in main table - Refined */
-        #dataBody td:nth-child(5) { /* Target the 5th column (Trigger setup) */
-            white-space: nowrap; /* Prevent wrapping within the cell */
-        }
-        #dataBody td:nth-child(5) > * { /* Apply to direct children: input, selects, button */
-            display: inline-block; /* Keep elements inline */
-            vertical-align: middle; /* Align them vertically */
-            margin-right: 4px; /* Consistent spacing */
-            margin-bottom: 2px; /* Small bottom margin if they wrap */
-        }
-         #dataBody td:nth-child(5) .trigger-value { width: 65px; } /* Fixed width */
-         #dataBody td:nth-child(5) .trigger-value-source { width: 90px; } /* Fixed width */
-         #dataBody td:nth-child(5) .trigger-type { width: 110px; } /* Fixed width */
-         /* #dataBody td:nth-child(5) .arm-trigger { No fixed width needed } */ /* Removed empty ruleset */
-
-         #dataBody td:nth-child(5) > *:last-child {
-             margin-right: 0; /* No margin for the last element */
-         }
-
         /* --- Mobile Optimizations --- */
         @media (max-width: 600px) {
             body {
@@ -2447,6 +2284,11 @@
                 <div>Timeout (min): <input type="number" id="triggerTimeout" min="1" value="5" style="width: 60px; padding: 2px 4px; margin: 0 4px;"></div>
                 <div>Active Trigger: <span id="activeTriggerStatus">None</span></div>
                 <button id="stopTriggerBtn" class="stop-trigger-btn" onclick="OrderSystem.stopAllTriggers()" disabled>Stop Trigger</button>
+                <div style="margin-left: 15px;">
+                    <label for="autoPlaceOrderToggle" style="margin-right: 5px; font-weight: 500;">AutoPlaceOrder:</label>
+                    <input type="checkbox" id="autoPlaceOrderToggle" style="margin-right: 5px;">
+                    <span id="autoPlaceOrderStatus" style="font-size: 12px; color: #666;">Disabled</span>
+                </div>
             </div>
 
             <!-- NEW Container for the two columns -->
@@ -5008,6 +4850,167 @@
             };
         })();
 
+        // Value Persistence Functions for Algo Trading Terminal
+        function saveAlgoValues() {
+            const values = {
+                // Basic order parameters
+                symbol: document.getElementById('symbol').value,
+                direction: document.getElementById('direction').value,
+                quantity: document.getElementById('quantity').value,
+                
+                // Target settings
+                targetType: document.querySelector('input[name="targetType"]:checked').value,
+                targetInput: document.getElementById('targetInput').value,
+                
+                // Stop Loss settings
+                slType: document.querySelector('input[name="slType"]:checked').value,
+                slInput: document.getElementById('slInput').value,
+                
+                // Trailing SL
+                trailingSL: document.getElementById('trailingSL').checked,
+                
+                // Trigger settings
+                triggerType: document.getElementById('algoTriggerType').value,
+                triggerValueSource: document.getElementById('algoTriggerValueSource').value,
+                triggerValue: document.getElementById('algoTriggerValue').value,
+                emaPercentageValue: document.getElementById('emaPercentageValue').value,
+                
+                // Second trigger settings
+                triggerType2: document.getElementById('algoTriggerType2').value,
+                triggerValueSource2: document.getElementById('algoTriggerValueSource2').value,
+                triggerValue2: document.getElementById('algoTriggerValue2').value,
+                emaPercentageValue2: document.getElementById('emaPercentageValue2').value,
+                
+                // TradingView condition
+                requireTvCondition: document.getElementById('requireTvCondition').checked,
+                tvConditionSymbol: document.getElementById('tvConditionSymbolSelect').value,
+                
+                // Signal condition
+                requireSignalCondition: document.getElementById('requireSignalCondition').checked,
+                selectedSignal: document.getElementById('signalTriggerSelect').value,
+                
+                // Timeout
+                triggerTimeout: document.getElementById('triggerTimeout').value,
+                
+                // AutoPlaceOrder toggle - Not saved for safety (always starts disabled)
+                // autoPlaceOrderToggle: document.getElementById('autoPlaceOrderToggle').checked
+            };
+            
+            localStorage.setItem('algoTradingValues', JSON.stringify(values));
+        }
+
+        function loadAlgoValues() {
+            const savedValues = localStorage.getItem('algoTradingValues');
+            if (savedValues) {
+                try {
+                    const values = JSON.parse(savedValues);
+                    
+                    // Load basic order parameters
+                    if (values.symbol) document.getElementById('symbol').value = values.symbol;
+                    if (values.direction) document.getElementById('direction').value = values.direction;
+                    if (values.quantity) document.getElementById('quantity').value = values.quantity;
+                    
+                    // Load target settings
+                    if (values.targetType) {
+                        document.querySelector(`input[name="targetType"][value="${values.targetType}"]`).checked = true;
+                    }
+                    if (values.targetInput) document.getElementById('targetInput').value = values.targetInput;
+                    
+                    // Load stop loss settings
+                    if (values.slType) {
+                        document.querySelector(`input[name="slType"][value="${values.slType}"]`).checked = true;
+                    }
+                    if (values.slInput) document.getElementById('slInput').value = values.slInput;
+                    
+                    // Load trailing SL
+                    if (values.trailingSL !== undefined) document.getElementById('trailingSL').checked = values.trailingSL;
+                    
+                    // Load trigger settings
+                    if (values.triggerType) {
+                        document.getElementById('algoTriggerType').value = values.triggerType;
+                        // Trigger change event to show/hide percentage input
+                        document.getElementById('algoTriggerType').dispatchEvent(new Event('change'));
+                    }
+                    if (values.triggerValueSource) document.getElementById('algoTriggerValueSource').value = values.triggerValueSource;
+                    if (values.triggerValue) document.getElementById('algoTriggerValue').value = values.triggerValue;
+                    if (values.emaPercentageValue) document.getElementById('emaPercentageValue').value = values.emaPercentageValue;
+                    
+                    // Load second trigger settings
+                    if (values.triggerType2) {
+                        document.getElementById('algoTriggerType2').value = values.triggerType2;
+                        // Trigger change event to show/hide percentage input
+                        document.getElementById('algoTriggerType2').dispatchEvent(new Event('change'));
+                    }
+                    if (values.triggerValueSource2) document.getElementById('algoTriggerValueSource2').value = values.triggerValueSource2;
+                    if (values.triggerValue2) document.getElementById('algoTriggerValue2').value = values.triggerValue2;
+                    if (values.emaPercentageValue2) document.getElementById('emaPercentageValue2').value = values.emaPercentageValue2;
+                    
+                    // Load TradingView condition
+                    if (values.requireTvCondition !== undefined) document.getElementById('requireTvCondition').checked = values.requireTvCondition;
+                    if (values.tvConditionSymbol) document.getElementById('tvConditionSymbolSelect').value = values.tvConditionSymbol;
+                    
+                    // Load signal condition
+                    if (values.requireSignalCondition !== undefined) document.getElementById('requireSignalCondition').checked = values.requireSignalCondition;
+                    if (values.selectedSignal) document.getElementById('signalTriggerSelect').value = values.selectedSignal;
+                    
+                    // Load timeout
+                    if (values.triggerTimeout) document.getElementById('triggerTimeout').value = values.triggerTimeout;
+                    
+                    // Load AutoPlaceOrder toggle - Always start disabled for safety
+                    // if (values.autoPlaceOrderToggle !== undefined) {
+                    //     document.getElementById('autoPlaceOrderToggle').checked = values.autoPlaceOrderToggle;
+                    //     updateAutoPlaceOrderStatus();
+                    // }
+                    
+                } catch (error) {
+                    console.error('Error loading algo trading values:', error);
+                }
+            }
+        }
+
+        // AutoPlaceOrder functionality
+        // Note: AutoPlaceOrder is always disabled by default for safety
+        // Users must manually enable it each time they want to use it
+        function updateAutoPlaceOrderStatus() {
+            const toggle = document.getElementById('autoPlaceOrderToggle');
+            const status = document.getElementById('autoPlaceOrderStatus');
+            
+            if (toggle.checked) {
+                status.textContent = 'Enabled';
+                status.style.color = '#28a745';
+                status.style.fontWeight = 'bold';
+            } else {
+                status.textContent = 'Disabled';
+                status.style.color = '#666';
+                status.style.fontWeight = 'normal';
+            }
+        }
+
+        function checkAutoPlaceOrderConditions() {
+            const toggle = document.getElementById('autoPlaceOrderToggle');
+            // Safety check: Only proceed if user has explicitly enabled AutoPlaceOrder
+            if (!toggle.checked) return false;
+            
+            // Check if there are any active triggers waiting
+            const activeTriggerStatus = document.getElementById('activeTriggerStatus');
+            const hasActiveTriggers = activeTriggerStatus.textContent !== 'None' && 
+                                    activeTriggerStatus.textContent.includes('Waiting');
+            
+            // Check if there are any ongoing active positions
+            const activeCount = parseInt(document.getElementById('activeCount').textContent) || 0;
+            const hasActivePositions = activeCount > 0;
+            
+            // Auto place order if no active triggers and no active positions
+            if (!hasActiveTriggers && !hasActivePositions) {
+                console.log('AutoPlaceOrder: Conditions met, auto-clicking Place Order button');
+                // Auto-click the Place Order button
+                document.querySelector('button[onclick="OrderSystem.handleUIPlaceOrder()"]').click();
+                return true;
+            }
+            
+            return false;
+        }
+
         // Initialization
         window.addEventListener('load', () => {
             // Load Credentials
@@ -5031,6 +5034,9 @@
             // Initialize Algo Trading System
             OrderSystem.init();
             
+            // Load saved algo trading values
+            loadAlgoValues();
+            
             // Add trigger type change handlers for percentage input visibility
             document.getElementById('algoTriggerType').addEventListener('change', function() {
                 const percentageGroup = document.getElementById('emaPercentageGroup');
@@ -5039,6 +5045,7 @@
                 } else {
                     percentageGroup.style.display = 'none';
                 }
+                saveAlgoValues(); // Save values when changed
             });
             
             document.getElementById('algoTriggerType2').addEventListener('change', function() {
@@ -5048,6 +5055,7 @@
                 } else {
                     percentageGroup.style.display = 'none';
                 }
+                saveAlgoValues(); // Save values when changed
             });
 
             // Populate TV Symbol Dropdown initially
@@ -5059,6 +5067,63 @@
             document.querySelector(`input[name="modifyTargetType"][value="${savedModifyTargetType}"]`).checked = true;
             document.querySelector(`input[name="modifySLType"][value="${savedModifySLType}"]`).checked = true;
             // --- End Load Radio Button Prefs ---
+            
+            // Add event listeners for value persistence
+            const inputsToSave = [
+                'symbol', 'direction', 'quantity', 'targetInput', 'slInput', 'emaPercentageValue', 'emaPercentageValue2',
+                'algoTriggerValue', 'algoTriggerValue2', 'tvConditionSymbolSelect', 'signalTriggerSelect', 'triggerTimeout'
+            ];
+            
+            inputsToSave.forEach(inputId => {
+                const element = document.getElementById(inputId);
+                if (element) {
+                    element.addEventListener('change', saveAlgoValues);
+                    element.addEventListener('input', saveAlgoValues);
+                }
+            });
+            
+            // Add event listeners for radio buttons and checkboxes
+            const radioGroups = ['targetType', 'slType', 'algoTriggerValueSource', 'algoTriggerValueSource2'];
+            radioGroups.forEach(groupName => {
+                document.querySelectorAll(`input[name="${groupName}"]`).forEach(radio => {
+                    radio.addEventListener('change', saveAlgoValues);
+                });
+            });
+            
+            const checkboxes = ['trailingSL', 'requireTvCondition', 'requireSignalCondition'];
+            checkboxes.forEach(checkboxId => {
+                const element = document.getElementById(checkboxId);
+                if (element) {
+                    element.addEventListener('change', function() {
+                        saveAlgoValues();
+                    });
+                }
+            });
+            
+            // Separate event listener for AutoPlaceOrder toggle (doesn't save state)
+            const autoPlaceOrderToggle = document.getElementById('autoPlaceOrderToggle');
+            if (autoPlaceOrderToggle) {
+                autoPlaceOrderToggle.addEventListener('change', function() {
+                    updateAutoPlaceOrderStatus();
+                    // Note: AutoPlaceOrder state is NOT saved for safety
+                });
+            }
+            
+            // Add event listeners for select elements
+            const selects = ['algoTriggerType', 'algoTriggerType2'];
+            selects.forEach(selectId => {
+                const element = document.getElementById(selectId);
+                if (element) {
+                    element.addEventListener('change', saveAlgoValues);
+                }
+            });
+            
+            // Initialize AutoPlaceOrder status - Always start disabled
+            document.getElementById('autoPlaceOrderToggle').checked = false;
+            updateAutoPlaceOrderStatus();
+            
+            // Start AutoPlaceOrder monitoring
+            setInterval(checkAutoPlaceOrderConditions, 5000); // Check every 5 seconds
         });
 
         // --- Save Modify Order Radio Button Preferences on Change --- 
